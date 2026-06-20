@@ -1,0 +1,185 @@
+THE MUSEUM OF SIDDHARTHA DHAKAL
+Exhibition Content & Copy
+Every word for every room · Companion to the Prompt Pack & projects.ts · Feed to the agent
+How to use this document
+This supplies the actual copy for the portfolio — the words that go on the walls, plaques, and panels. Hand it to the agent alongside the Prompt Pack (which builds the 3D shell) so it has real content to place. The structure follows the museum room by room.
+Source of truth: everything here is drawn from your CV and your GitHub (github.com/SiddharthaDhakalO). The project list therefore differs from the first projects.ts draft — replace that file with the entries in the Gallery + Archive sections below.
+TODO markers flag the few things only you can supply — image paths, live links, exact dates, and any real metric you want on a plaque.
+0 · Identity & global copy
+Name  Siddhartha Dhakal
+Title  Frontend Web Developer
+Based in  Kathmandu, Nepal
+Taglines (pick one for the entrance / hero)
+Frontend developer building clean, considered interfaces — and an IT student still chasing the next thing to learn.
+Frontend web developer from Kathmandu. I build the part of the web people actually touch.
+Interfaces, built and rebuilt. A young collection, still growing.
+Contact
+Email  siddharthadhakal0@gmail.com
+Phone  +977 9742943801
+LinkedIn  linkedin.com/in/siddhartha-dhakal-778003261
+GitHub  github.com/SiddharthaDhakalO
+Also (optional)  Instagram, X/Twitter, Facebook — links on your GitHub profile if you want them in the Gift Shop
+Voice & tone
+Curatorial but warm. Serif headings, wide-tracked small-caps labels (EXHIBIT 01, MEDIUM, YEAR). Speak plainly and honestly — the fact that this is an early-career collection is a feature, not something to inflate. Elevate the craft and the curiosity, never the credentials.
+1 · Entrance Hall (2D landing, before the atrium)
+Eyebrow  THE MUSEUM OF
+Title  Siddhartha Dhakal
+Subtitle  Frontend Web Developer · Kathmandu
+Intro line  A small, growing collection of interfaces, experiments, and things made while learning to build well.
+Call to action  Enter the Exhibition
+Footer hint  Best experienced on a desktop · Use the map to move between rooms
+2 · Atrium (arrival & orientation)
+Museum statement
+Welcome to the Museum of Siddhartha Dhakal — a small, growing collection of work by a frontend developer based in Kathmandu. The rooms ahead hold interfaces built and rebuilt, problems worked through in the open, and the tools of a craft still being learned.
+The collection is young, and that is the point. Everything here is a record of someone learning to build the web well — and still enjoying it.
+Wayfinding (shown near the map)
+The Gallery — selected work.
+The Studio — where the maker is introduced.
+The Archive — experiments and early pieces.
+The Gift Shop — the way to get in touch.
+3 · The Gallery (selected work)
+Each exhibit below maps 1:1 to a Project in projects.ts. Fields in the plaque box are the structured data; the prose beneath is the overlay case study.
+Exhibit 01   Point of Sale (POS) System
+Medium: Blazor (.NET) · PostgreSQL · Minimal API
+Year: 2024
+Role: Frontend Web Developer — The High Innovations
+Tools: Blazor, .NET, HTML, CSS3, JavaScript, Figma, PostgreSQL, .NET Minimal API
+slug: pos-system
+Summary  A point-of-sale system for everyday retail and hospitality, where I built the front end — the screens staff actually touch to take payments, track stock, and read reports.
+Challenge  A POS lives or dies on its front end. The interface has to stay fast, legible and forgiving under the pressure of a live counter.
+Process
+Built the UI in Blazor with a focus on performance and a clear, calm user experience.
+Assembled responsive UI components and integrated them with the backend APIs for seamless operation.
+Worked with PostgreSQL for data and .NET Minimal APIs for the business logic.
+Streamlined the billing, inventory-tracking and reporting workflows.
+Artifacts  Responsive Blazor POS interface · reusable UI component set · integrated billing / inventory / reporting screens
+Impact  Brought billing, inventory and reporting into one coherent interface for counter staff. TODO: add a real number if you have one (venues using it, time saved per sale).
+Links  TODO: live demo / repo (likely private — add if shareable). Add a product name here if this POS has one.
+Hero image  TODO add image
+Exhibit 02   Kanban — a Jira / Trello-style board
+Medium: ReactJS · JavaScript · CSS3
+Year: 2023
+Role: Designer & Developer (personal project)
+Tools: ReactJS, JavaScript, CSS3, Figma
+slug: kanban
+Summary  A task-management board inspired by Jira and Trello — create tasks, assign them, move them across columns, and watch the work flow.
+Challenge  Recreate the heart of a tool like Jira — stateful, draggable, intuitive — from scratch in React.
+Process
+Designed the flow and screens in Figma first.
+Built a component-based UI in ReactJS.
+Implemented task creation, assignment, status tracking and a kanban board.
+Kept the code modular and maintainable throughout.
+Artifacts  React kanban application · Figma wireframes
+Impact  A working clone that demonstrates component architecture and state handling — built to learn, in public.
+Links  github.com/SiddharthaDhakalO/Kanban-the-father-of-Trello  (add a live demo link if deployed)
+Hero image  TODO add image / screenshot
+Exhibit 03   Flutter Weather
+Medium: Flutter · Dart
+Year: 2023
+Role: Developer (personal project)
+Tools: Flutter, Dart
+slug: flutter-weather
+Summary  A cross-platform weather app — a deliberate step out of the browser and into mobile, built to learn Flutter by shipping something real.
+Challenge  Pick up a new framework end-to-end: fetch live weather data and present it cleanly across screen sizes.
+Process
+Built the app in Flutter / Dart.
+Designed the weather views and handled layout, state and theming. TODO: confirm the weather data source / API used.
+Artifacts  Cross-platform Flutter weather application
+Impact  Demonstrates range beyond the web into cross-platform mobile development.
+Links  github.com/SiddharthaDhakalO/Flutter-Weather
+Hero image  TODO add image
+Exhibit 04   The High Innovations — Company Website
+Medium: HTML5 · CSS3 · JavaScript
+Year: 2024
+Role: Frontend Web Developer — The High Innovations
+Tools: HTML5, CSS3, JavaScript, Git
+slug: thi-website
+Summary  The public website for The High Innovations — my first professional build: a responsive company portfolio presenting the studio's capabilities and services.
+Challenge  Represent a company cleanly and quickly on the web, consistent across every browser and device.
+Process
+Designed and developed a responsive site in modern HTML5, CSS3 and JavaScript.
+Wrote clean, modular, maintainable code for cross-browser compatibility.
+Tested thoroughly across browsers and devices, and managed changes with Git in a team.
+Artifacts  Responsive company website · cross-browser tested
+Links  TODO: add the live URL.
+Hero image  TODO add image
+4 · The Studio (about & skills)
+Curator's statement (bio)
+Siddhartha Dhakal is a frontend web developer based in Kathmandu, Nepal, and an Information Technology student with — in his own words — an insatiable curiosity for technology. His work centres on the front of the web: the part people actually see and touch, made clean, responsive and pleasant to use.
+He works most fluently in HTML, CSS and JavaScript, with a growing command of React and the .NET / Blazor world, and designs his interfaces in Figma before building them. Since 2024 he has built frontends professionally at The High Innovations — from the company's own website to the screens of a live point-of-sale system.
+Away from client work, he builds to learn: a Kanban board to understand state, a weather app to step into Flutter, small experiments that end up in the Archive. He is an active member of Code For Change, where he helps run hackathons and bootcamps and champions open-source culture. This museum is the latest of those experiments — a portfolio that behaves like a place.
+The Curator's Tools (skills)
+Present these in two honest tiers so the depth reads true in an interview.
+Core — build with daily  HTML5, CSS3, JavaScript, Bootstrap, Material UI, MudBlazor, ReactJS, Blazor / ASP.NET, Figma (UI/UX), PostgreSQL, SQL, Git & GitHub, Responsive Web Design, Cross-Browser Compatibility
+Also working with  TypeScript, Next.js, Tailwind CSS, SASS, Redux, React Router, Node.js, Vite, Flutter / Dart, MySQL
+Exploring / learning  Python (NumPy, Pandas, Matplotlib, PyTorch), Django, Docker, Swagger
+Design & creative  Figma, Adobe Photoshop, Adobe Lightroom, Canva
+Ways of working  Jira, Trello, Git, team collaboration & code review
+TODO: move anything you would not want to be quizzed on down a tier — credibility beats length.
+Provenance / Exhibition History (timeline)
+2024 — present  Frontend Web Developer · The High Innovations, Kathmandu
+2023 — present  Active Member · Code For Change (CFC)
+2022 — present  Bachelor in Information & Technology (BIT) · Texas College of Management and IT, Kathmandu
+2020 — 2022  Higher Secondary (+2) · Modern Public Secondary School, Nepalgunj
+Experience — The High Innovations (detail)
+Designed and developed a responsive company portfolio website showcasing the studio's capabilities and services.
+Implemented clean, modular code in modern HTML5 / CSS3 / JavaScript for cross-browser compatibility.
+Conducted thorough testing to ensure optimal performance across browsers and devices.
+Used Git to manage and track changes, supporting efficient team collaboration.
+Contributed ideas in regular team meetings and reported on project progress.
+5 · The Archive (experiments & early pieces)
+Lighter cards than the Gallery — short labels for the experiments, the learning pieces, and a note that the collection is still being acquired. This is where a young portfolio turns thinness into character.
+theme_Flutter
+Medium  Flutter · Dart
+Note  A Flutter theming experiment — exploring how a single app can switch its whole look and feel.
+Link  github.com/SiddharthaDhakalO/theme_Flutter
+SetState-BlockC
+Medium  C++
+Note  An early programming piece from the foundations — kept here as part of the provenance.
+Link  github.com/SiddharthaDhakalO/SetState-BlockC
+This Museum
+Medium  React Three Fiber · Next.js · Drei
+Note  The room you are standing in. A 3D portfolio built from primitives, vibe-coded with AI agents — the newest experiment in the collection.
+Acquisitions in progress
+A small placard for the empty wall: “The collection is still growing. New work is acquired here as it's made.”  TODO: drop in your other GitHub repos (11 total) as cards if you'd like the Archive fuller.
+6 · The Gift Shop (contact)
+Closing line  Thank you for visiting. If something here resonated, I'd be glad to hear from you.
+Details
+Email  siddharthadhakal0@gmail.com
+Phone  +977 9742943801
+LinkedIn  linkedin.com/in/siddhartha-dhakal-778003261
+GitHub  github.com/SiddharthaDhakalO
+Take the catalogue (resume)
+Button  Download Résumé
+Caption  The full catalogue, in PDF — experience, skills and projects on one page.
+Visitor's Book (contact form)
+Intro  Leave a note in the Visitor's Book and it'll reach me by email.
+Fields  Name · Email · Message
+Placeholders  Your name  /  Where can I reach you?  /  Say hello, or tell me about a project
+Submit button  Sign the Visitor's Book
+Success message  Your note has been left in the Visitor's Book. Thank you — I'll be in touch.
+Error message  Something went wrong leaving your note. Please try again, or email me directly.
+7 · Microcopy & labels
+Loading screen  The museum is opening…
+Room nameplates  Atrium · Gallery · Studio · Archive · Gift Shop
+Map / HUD  You are here · ← Back to the Atrium
+Exhibit hover  View exhibit
+Cursor labels (optional)  Look · Enter · View
+Empty / under-construction  This wing is currently under curation.
+404 page  This wing doesn't exist — let's walk you back to the Atrium.
+Reduced-motion notice (optional)  Motion reduced — exhibits will jump rather than glide.
+Mobile / classic-view toggle  Switch to Classic View · Enter the 3D Museum
+8 · SEO & meta copy
+Page title  Siddhartha Dhakal — Frontend Web Developer | The Museum
+Meta description  The Museum of Siddhartha Dhakal — a 3D portfolio by a frontend web developer in Kathmandu. Explore selected work in Blazor, React and Flutter.
+OG / social description  Step inside a 3D museum of interfaces, experiments and code by Siddhartha Dhakal, frontend developer.
+OG image  TODO: export a render of the museum (1200×630).
+JSON-LD — Person schema fields
+name: Siddhartha Dhakal
+jobTitle: Frontend Web Developer
+url: TODO your portfolio domain
+sameAs: [ linkedin.com/in/siddhartha-dhakal-778003261, github.com/SiddharthaDhakalO ]
+address: Kathmandu, Nepal
+alumniOf: Texas College of Management and IT
+worksFor: The High Innovations
+Hang the work, write the labels, open the doors.

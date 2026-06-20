@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm run dev 2>&1 | Tee-Object -FilePath \"$env:TEMP\\\\next-dev.log\")",
+      "Read(//c/Users/admin/AppData/Local/Temp/claude/c--Users-admin-Desktop-Sid-Portfolio/1c5aa8f3-cbe8-4ba5-89d9-eea237d92876/tasks/**)"
+    ]
+  }
+}
