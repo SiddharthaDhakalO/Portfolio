@@ -2,15 +2,17 @@
 
 import { useRef, useState } from 'react';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
-import { useTexture } from '@react-three/drei';
+import { useTexture, Text } from '@react-three/drei';
 import * as THREE from 'three';
 
 const FRAME_COLOR = '#C9A961';
-const FRAME_BORDER = 0.06;
+const MAT_COLOR = '#F0EADC';
+const PLATE_COLOR = '#2A2622';
+const FRAME_BORDER = 0.07;
+const MAT_BORDER = 0.1;
 const FRAME_DEPTH = 0.08;
-const IMAGE_OFFSET = 0.012;
-const HOVER_SCALE = 1.05;
-const HOVER_EMISSIVE = 0.6;
+const HOVER_SCALE = 1.04;
+const HOVER_EMISSIVE = 0.5;
 const LERP_SPEED = 8;
 
 type Props = {
@@ -21,6 +23,7 @@ type Props = {
   onSelect: (slug: string) => void;
   width?: number;
   height?: number;
+  caption?: string;
 };
 
 export default function Exhibit({
@@ -29,8 +32,9 @@ export default function Exhibit({
   image,
   projectSlug,
   onSelect,
-  width = 1.6,
-  height = 1.0,
+  width = 2.5,
+  height = 1.55,
+  caption,
 }: Props) {
   const texture = useTexture(image);
   const groupRef = useRef<THREE.Group>(null);
@@ -56,20 +60,20 @@ export default function Exhibit({
     }
   });
 
-  const frameWidth = width + FRAME_BORDER * 2;
-  const frameHeight = height + FRAME_BORDER * 2;
+  const matW = width + MAT_BORDER * 2;
+  const matH = height + MAT_BORDER * 2;
+  const frameW = matW + FRAME_BORDER * 2;
+  const frameH = matH + FRAME_BORDER * 2;
 
   const handleSelect = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
     onSelect(projectSlug);
   };
-
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setHovered(true);
     document.body.style.cursor = 'pointer';
   };
-
   const handlePointerOut = () => {
     setHovered(false);
     document.body.style.cursor = 'default';
@@ -77,13 +81,14 @@ export default function Exhibit({
 
   return (
     <group ref={groupRef} position={position} rotation={rotation}>
+      {/* Gold frame */}
       <mesh
         castShadow
         onClick={handleSelect}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
       >
-        <boxGeometry args={[frameWidth, frameHeight, FRAME_DEPTH]} />
+        <boxGeometry args={[frameW, frameH, FRAME_DEPTH]} />
         <meshStandardMaterial
           ref={frameMatRef}
           color={FRAME_COLOR}
@@ -94,8 +99,15 @@ export default function Exhibit({
         />
       </mesh>
 
+      {/* Off-white mat */}
+      <mesh position={[0, 0, FRAME_DEPTH / 2 + 0.004]}>
+        <planeGeometry args={[matW, matH]} />
+        <meshStandardMaterial color={MAT_COLOR} roughness={0.9} />
+      </mesh>
+
+      {/* Hero image */}
       <mesh
-        position={[0, 0, FRAME_DEPTH / 2 + IMAGE_OFFSET]}
+        position={[0, 0, FRAME_DEPTH / 2 + 0.01]}
         onClick={handleSelect}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
@@ -103,6 +115,27 @@ export default function Exhibit({
         <planeGeometry args={[width, height]} />
         <meshBasicMaterial map={texture} toneMapped={false} />
       </mesh>
+
+      {/* Caption plate */}
+      {caption && (
+        <group position={[0, -frameH / 2 - 0.16, 0.02]}>
+          <mesh>
+            <boxGeometry args={[Math.min(frameW, 1.9), 0.2, 0.02]} />
+            <meshStandardMaterial color={PLATE_COLOR} roughness={0.5} />
+          </mesh>
+          <Text
+            position={[0, 0, 0.02]}
+            fontSize={0.075}
+            maxWidth={1.7}
+            color={FRAME_COLOR}
+            anchorX="center"
+            anchorY="middle"
+            letterSpacing={0.12}
+          >
+            {caption.toUpperCase()}
+          </Text>
+        </group>
+      )}
     </group>
   );
 }

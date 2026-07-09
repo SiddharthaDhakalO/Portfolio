@@ -1,17 +1,34 @@
-import type { WaypointName } from './waypoints';
+import { ROOM_T, EXHIBIT_T } from './railPath';
+import type { RoomId } from './useMuseumStore';
 
-type Handler = (name: WaypointName, onArrive?: () => void) => void;
+// Low-level rail bus: the ScrollRig subscribes and walks to a path parameter.
+type RailHandler = (t: number, onArrive?: () => void) => void;
 
-let handler: Handler | null = null;
+let railHandler: RailHandler | null = null;
 
-export const cameraBus = {
-  subscribe(h: Handler): () => void {
-    handler = h;
+export const railBus = {
+  subscribe(h: RailHandler): () => void {
+    railHandler = h;
     return () => {
-      if (handler === h) handler = null;
+      if (railHandler === h) railHandler = null;
     };
   },
-  glideToWaypoint(name: WaypointName, onArrive?: () => void) {
-    handler?.(name, onArrive);
+  walkTo(t: number, onArrive?: () => void) {
+    railHandler?.(t, onArrive);
+  },
+};
+
+// High-level API kept from the glide era: named destinations. Room names and
+// 'exhibit:<slug>' resolve to rail positions.
+export const cameraBus = {
+  glideToWaypoint(name: string, onArrive?: () => void) {
+    if (name.startsWith('exhibit:')) {
+      const slug = name.slice('exhibit:'.length);
+      const t = EXHIBIT_T[slug];
+      if (t !== undefined) railBus.walkTo(t, onArrive);
+      return;
+    }
+    const t = ROOM_T[name as RoomId];
+    if (t !== undefined) railBus.walkTo(t, onArrive);
   },
 };
