@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 
-export const ROOM_IDS = ['atrium', 'gallery', 'studio', 'archive', 'giftshop'] as const;
+export const ROOM_IDS = [
+  'plaza',
+  'atrium',
+  'gallery',
+  'studio',
+  'archive',
+  'giftshop',
+] as const;
 export type RoomId = (typeof ROOM_IDS)[number];
 
 export type OverlayType = 'exhibit' | 'studio' | 'archive' | 'giftshop' | 'sketch';
@@ -19,7 +26,7 @@ type MuseumStore = {
 };
 
 export const useMuseumStore = create<MuseumStore>((set) => ({
-  currentRoom: 'atrium',
+  currentRoom: 'plaza',
   selectedSlug: null,
   activeOverlay: null,
   setCurrentRoom: (room) => set({ currentRoom: room }),

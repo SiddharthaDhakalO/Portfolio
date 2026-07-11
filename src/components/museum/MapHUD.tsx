@@ -6,6 +6,7 @@ import { ROOM_IDS, useMuseumStore, type RoomId } from '@/lib/useMuseumStore';
 import { ROOMS } from './MuseumShell';
 
 const ROOM_LABELS: Record<RoomId, string> = {
+  plaza: 'Plaza',
   atrium: 'Atrium',
   gallery: 'Gallery',
   studio: 'Studio',
@@ -14,6 +15,7 @@ const ROOM_LABELS: Record<RoomId, string> = {
 };
 
 const ROOM_LETTERS: Record<RoomId, string> = {
+  plaza: 'P',
   atrium: 'A',
   gallery: 'G',
   studio: 'S',
@@ -21,14 +23,31 @@ const ROOM_LETTERS: Record<RoomId, string> = {
   giftshop: '$',
 };
 
+// The interior rooms come from MuseumShell; the plaza is open ground, so it
+// gets a hand-placed dashed chip covering the forecourt in front of the doors.
+type MapRoom = {
+  id: RoomId;
+  center: [number, number];
+  size: [number, number];
+  dashed?: boolean;
+};
+const MAP_ROOMS: MapRoom[] = [
+  ...ROOMS.map((r) => ({
+    id: r.id as RoomId,
+    center: r.center,
+    size: r.size,
+  })),
+  { id: 'plaza', center: [0, 17.5], size: [14, 9], dashed: true },
+];
+
 // World coords used directly. World x → SVG x; world z → SVG y. Negative z
 // (the gallery wing) ends up at the top of the map, which matches the user's
-// POV: they spawn near the gift-shop and look toward the gallery.
+// POV: they arrive from the plaza looking toward the gallery.
 const PAD = 4;
 const MIN_X = -17 - PAD;
 const MIN_Y = -17 - PAD;
 const VIEW_W = 34 + PAD * 2;
-const VIEW_H = 30 + PAD * 2;
+const VIEW_H = 39 + PAD * 2;
 
 export default function MapHUD() {
   const currentRoom = useMuseumStore((s) => s.currentRoom);
@@ -92,8 +111,8 @@ export default function MapHUD() {
         role="img"
         aria-label="Museum floor plan navigation"
       >
-        {ROOMS.map((room) => {
-          const id = room.id as RoomId;
+        {MAP_ROOMS.map((room) => {
+          const id = room.id;
           const isCurrent = currentRoom === id;
           const isHovered = hovered === id;
           const [cx, cz] = room.center;
@@ -129,6 +148,7 @@ export default function MapHUD() {
                 fill={fill}
                 stroke={stroke}
                 strokeWidth={strokeWidth}
+                strokeDasharray={room.dashed ? '0.9 0.6' : undefined}
               />
               <text
                 x={cx}

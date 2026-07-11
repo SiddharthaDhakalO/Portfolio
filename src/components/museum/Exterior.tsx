@@ -1,0 +1,424 @@
+'use client';
+
+import { useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { MeshReflectorMaterial, Text } from '@react-three/drei';
+import * as THREE from 'three';
+import { ROOMS, WALL_HEIGHT, SKYLIGHT_RADIUS } from './MuseumShell';
+
+// The building's front plane — the gift-shop lobby's north edge.
+export const FACADE_Z = 13;
+
+const WHITE = '#F2EFE8';
+const CONCRETE = '#C7C1B4';
+const PATH_STONE = '#DFD9CC';
+const DARK = '#26231F';
+const GLASS_TINT = '#BCD2D6';
+
+const glassProps = {
+  color: GLASS_TINT,
+  transparent: true,
+  opacity: 0.16,
+  roughness: 0.06,
+  metalness: 0.15,
+  envMapIntensity: 1.4,
+  depthWrite: false,
+  side: THREE.DoubleSide,
+} as const;
+
+/* ------------------------------------------------------------------ */
+/* Entrance facade: piers, glass curtain wall, sliding doors, canopy   */
+/* ------------------------------------------------------------------ */
+
+// Doors slide open when the visitor walks within range of the threshold.
+function SlidingDoors() {
+  const left = useRef<THREE.Group>(null);
+  const right = useRef<THREE.Group>(null);
+  const open = useRef(0);
+
+  useFrame(({ camera }, dt) => {
+    const dx = camera.position.x;
+    const dz = camera.position.z - FACADE_Z;
+    const target = Math.hypot(dx, dz) < 8 ? 1 : 0;
+    open.current += (target - open.current) * Math.min(1, 3.2 * dt);
+    const slide = open.current * 1.8;
+    if (left.current) left.current.position.x = -0.875 - slide;
+    if (right.current) right.current.position.x = 0.875 + slide;
+  });
+
+  const panel = (
+    <>
+      <mesh position={[0, 1.64, 0]}>
+        <boxGeometry args={[1.74, 3.2, 0.05]} />
+        <meshStandardMaterial {...glassProps} opacity={0.22} />
+      </mesh>
+      {[-0.86, 0.86].map((x) => (
+        <mesh key={x} position={[x, 1.64, 0]}>
+          <boxGeometry args={[0.06, 3.28, 0.09]} />
+          <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.45} />
+        </mesh>
+      ))}
+      {[0.035, 3.245].map((y) => (
+        <mesh key={y} position={[0, y, 0]}>
+          <boxGeometry args={[1.78, 0.07, 0.09]} />
+          <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.45} />
+        </mesh>
+      ))}
+    </>
+  );
+
+  return (
+    <group position={[0, 0, FACADE_Z - 0.18]}>
+      <group ref={left} position={[-0.875, 0, 0]}>{panel}</group>
+      <group ref={right} position={[0.875, 0, 0]}>{panel}</group>
+    </group>
+  );
+}
+
+function Facade() {
+  const mullionXs = [-5.9, -4.52, -3.14, -1.75, 1.75, 3.14, 4.52, 5.9];
+  return (
+    <group>
+      {/* Solid white piers bookending the glass wall */}
+      {[-6.45, 6.45].map((x) => (
+        <mesh key={x} position={[x, WALL_HEIGHT / 2, FACADE_Z]} castShadow receiveShadow>
+          <boxGeometry args={[1.1, WALL_HEIGHT, 0.35]} />
+          <meshStandardMaterial color={WHITE} roughness={0.85} />
+        </mesh>
+      ))}
+
+      {/* Fixed glazing: two full-height panes + a band above the doors */}
+      {[-3.825, 3.825].map((x) => (
+        <mesh key={x} position={[x, WALL_HEIGHT / 2, FACADE_Z]}>
+          <boxGeometry args={[4.15, WALL_HEIGHT, 0.06]} />
+          <meshStandardMaterial {...glassProps} />
+        </mesh>
+      ))}
+      <mesh position={[0, 4.15, FACADE_Z]}>
+        <boxGeometry args={[3.5, 1.7, 0.06]} />
+        <meshStandardMaterial {...glassProps} />
+      </mesh>
+
+      {/* Mullions and channels */}
+      {mullionXs.map((x) => (
+        <mesh key={x} position={[x, WALL_HEIGHT / 2, FACADE_Z]} castShadow>
+          <boxGeometry args={[0.1, WALL_HEIGHT, 0.16]} />
+          <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.45} />
+        </mesh>
+      ))}
+      {[0.05, WALL_HEIGHT - 0.05].map((y) => (
+        <mesh key={y} position={[0, y, FACADE_Z]}>
+          <boxGeometry args={[11.8, 0.1, 0.16]} />
+          <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.45} />
+        </mesh>
+      ))}
+      <mesh position={[0, 3.35, FACADE_Z]}>
+        <boxGeometry args={[3.6, 0.1, 0.16]} />
+        <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.45} />
+      </mesh>
+
+      <SlidingDoors />
+
+      {/* Cantilevered entry canopy on two thin steel columns */}
+      <mesh position={[0, 4.35, FACADE_Z + 2.4]} castShadow>
+        <boxGeometry args={[10, 0.5, 4.8]} />
+        <meshStandardMaterial color={WHITE} roughness={0.8} />
+      </mesh>
+      {[-4.6, 4.6].map((x) => (
+        <mesh key={x} position={[x, 2.05, FACADE_Z + 4.35]} castShadow>
+          <cylinderGeometry args={[0.075, 0.075, 4.1, 16]} />
+          <meshStandardMaterial color={DARK} metalness={0.6} roughness={0.35} />
+        </mesh>
+      ))}
+
+      {/* Museum name on the canopy fascia */}
+      <Text
+        position={[0, 4.35, FACADE_Z + 4.81]}
+        fontSize={0.24}
+        color={DARK}
+        anchorX="center"
+        anchorY="middle"
+        letterSpacing={0.28}
+        fontWeight={600}
+      >
+        THE MUSEUM OF SIDDHARTHA DHAKAL
+      </Text>
+
+      {/* Warm downlights glowing under the canopy at dusk */}
+      {[-2.2, 2.2].map((x) => (
+        <mesh key={x} position={[x, 4.09, FACADE_Z + 2.4]} rotation={[Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.12, 24]} />
+          <meshStandardMaterial
+            color="#FFE3B8"
+            emissive="#FFE3B8"
+            emissiveIntensity={1.8}
+            side={THREE.DoubleSide}
+            toneMapped={false}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Roofline: floating parapet slabs, raised atrium mass, skylight drum */
+/* ------------------------------------------------------------------ */
+
+const SLAB_H = 0.58;
+// Slabs start just above the ceiling planes so nothing pokes into the rooms.
+const SLAB_BASE = WALL_HEIGHT + 0.02;
+
+function Roofline() {
+  return (
+    <group>
+      {ROOMS.filter((r) => r.id !== 'atrium').map((room) => (
+        <mesh
+          key={`slab-${room.id}`}
+          position={[room.center[0], SLAB_BASE + SLAB_H / 2, room.center[1]]}
+          castShadow
+        >
+          <boxGeometry args={[room.size[0] + 0.5, SLAB_H, room.size[1] + 0.5]} />
+          <meshStandardMaterial color={WHITE} roughness={0.85} />
+        </mesh>
+      ))}
+
+      {/* Atrium reads as the tall central mass: a parapet band rising above
+          the wings (hollow, so it never covers the skylight hole). */}
+      {[
+        { pos: [0, 0, 7.025] as const, size: [14.5, 1.6, 0.45] as const },
+        { pos: [0, 0, -7.025] as const, size: [14.5, 1.6, 0.45] as const },
+        { pos: [7.025, 0, 0] as const, size: [0.45, 1.6, 13.6] as const },
+        { pos: [-7.025, 0, 0] as const, size: [0.45, 1.6, 13.6] as const },
+      ].map((band, i) => (
+        <mesh
+          key={`atrium-parapet-${i}`}
+          position={[band.pos[0], SLAB_BASE + 0.8, band.pos[2]]}
+          castShadow
+        >
+          <boxGeometry args={[...band.size]} />
+          <meshStandardMaterial color={WHITE} roughness={0.85} />
+        </mesh>
+      ))}
+
+      {/* Skylight drum crowning the atrium */}
+      <mesh position={[0, 6.25, 0]} castShadow>
+        <cylinderGeometry args={[SKYLIGHT_RADIUS + 0.7, SKYLIGHT_RADIUS + 0.7, 2.4, 48, 1, true]} />
+        <meshStandardMaterial color={WHITE} roughness={0.85} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh position={[0, 7.44, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[SKYLIGHT_RADIUS + 0.7, 48]} />
+        <meshStandardMaterial color={WHITE} roughness={0.85} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Plaza: forecourt, reflecting pool, trees, benches, bollards, stele  */
+/* ------------------------------------------------------------------ */
+
+function Tree({
+  position,
+  scale = 1,
+}: {
+  position: [number, number, number];
+  scale?: number;
+}) {
+  return (
+    <group position={position} scale={scale}>
+      <mesh position={[0, 0.7, 0]} castShadow>
+        <cylinderGeometry args={[0.09, 0.14, 1.4, 10]} />
+        <meshStandardMaterial color="#6E5541" roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 1.95, 0]} scale={[1, 0.85, 1]} castShadow>
+        <icosahedronGeometry args={[0.95, 0]} />
+        <meshStandardMaterial color="#7A8450" roughness={0.9} flatShading />
+      </mesh>
+      <mesh position={[0.3, 2.55, 0.1]} castShadow>
+        <icosahedronGeometry args={[0.6, 0]} />
+        <meshStandardMaterial color="#8A9158" roughness={0.9} flatShading />
+      </mesh>
+    </group>
+  );
+}
+
+function Bollard({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.4, 0]} castShadow>
+        <cylinderGeometry args={[0.075, 0.075, 0.8, 12]} />
+        <meshStandardMaterial color={DARK} metalness={0.4} roughness={0.5} />
+      </mesh>
+      <mesh position={[0, 0.78, 0]}>
+        <cylinderGeometry args={[0.078, 0.078, 0.06, 12]} />
+        <meshStandardMaterial
+          color="#FFD9A0"
+          emissive="#FFD9A0"
+          emissiveIntensity={2}
+          toneMapped={false}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+function ReflectingPool() {
+  // Basin x ∈ [-8.5, -3], z ∈ [18, 30], west of the entry path.
+  const copings: { pos: [number, number, number]; size: [number, number, number] }[] = [
+    { pos: [-8.64, 0.08, 24], size: [0.28, 0.16, 12.56] },
+    { pos: [-2.86, 0.08, 24], size: [0.28, 0.16, 12.56] },
+    { pos: [-5.75, 0.08, 30.14], size: [5.5, 0.16, 0.28] },
+    { pos: [-5.75, 0.08, 17.86], size: [5.5, 0.16, 0.28] },
+  ];
+  return (
+    <group>
+      {copings.map((c, i) => (
+        <mesh key={i} position={c.pos} castShadow receiveShadow>
+          <boxGeometry args={c.size} />
+          <meshStandardMaterial color="#B5AFA2" roughness={0.8} />
+        </mesh>
+      ))}
+      <mesh position={[-5.75, 0.1, 24]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[5.5, 12]} />
+        <MeshReflectorMaterial
+          blur={[300, 80]}
+          resolution={512}
+          mixBlur={0.9}
+          mixStrength={1.4}
+          mirror={0.6}
+          roughness={0.6}
+          depthScale={0.5}
+          minDepthThreshold={0.6}
+          maxDepthThreshold={1.4}
+          color="#22333B"
+          metalness={0.35}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+function NameStele() {
+  return (
+    <group position={[2.7, 0, 38.8]}>
+      <mesh position={[0, 1.35, 0]} castShadow>
+        <boxGeometry args={[1.5, 2.7, 0.22]} />
+        <meshStandardMaterial color="#211E1A" roughness={0.6} />
+      </mesh>
+      <Text
+        position={[0, 2.18, 0.12]}
+        fontSize={0.13}
+        color="#CFC8BA"
+        anchorX="center"
+        anchorY="middle"
+        letterSpacing={0.42}
+      >
+        THE MUSEUM OF
+      </Text>
+      <Text
+        position={[0, 1.82, 0.12]}
+        fontSize={0.3}
+        color="#F5F2EA"
+        anchorX="center"
+        anchorY="middle"
+        letterSpacing={0.16}
+        fontWeight={600}
+      >
+        SIDDHARTHA
+      </Text>
+      <Text
+        position={[0, 1.44, 0.12]}
+        fontSize={0.3}
+        color="#F5F2EA"
+        anchorX="center"
+        anchorY="middle"
+        letterSpacing={0.16}
+        fontWeight={600}
+      >
+        DHAKAL
+      </Text>
+      <mesh position={[0, 1.1, 0.12]}>
+        <boxGeometry args={[0.9, 0.018, 0.01]} />
+        <meshStandardMaterial
+          color="#FFD9A0"
+          emissive="#FFD9A0"
+          emissiveIntensity={1.4}
+          toneMapped={false}
+        />
+      </mesh>
+      <Text
+        position={[0, 0.88, 0.12]}
+        fontSize={0.1}
+        color="#9E968A"
+        anchorX="center"
+        anchorY="middle"
+        letterSpacing={0.3}
+      >
+        FRONTEND · KATHMANDU
+      </Text>
+    </group>
+  );
+}
+
+const TREES: { position: [number, number, number]; scale: number }[] = [
+  { position: [6.5, 0, 17.5], scale: 1.15 },
+  { position: [9.8, 0, 23.5], scale: 1.3 },
+  { position: [7.6, 0, 31.5], scale: 1 },
+  { position: [10.2, 0, 37.5], scale: 1.25 },
+  { position: [5.6, 0, 41], scale: 0.9 },
+  { position: [-10.8, 0, 19.5], scale: 1.2 },
+  { position: [-11.6, 0, 28], scale: 1 },
+  { position: [-9.2, 0, 35.5], scale: 1.15 },
+];
+
+const BOLLARD_ZS = [15.8, 21.8, 27.8, 33.8, 39.8];
+
+function Plaza() {
+  return (
+    <group>
+      {/* Forecourt ground and the lighter entry path down its axis */}
+      <mesh position={[0, -0.03, 12]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[160, 160]} />
+        <meshStandardMaterial color={CONCRETE} roughness={1} />
+      </mesh>
+      <mesh position={[0, -0.005, 27.8]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[4.4, 30]} />
+        <meshStandardMaterial color={PATH_STONE} roughness={0.95} />
+      </mesh>
+
+      <ReflectingPool />
+      <NameStele />
+
+      {TREES.map((t, i) => (
+        <Tree key={i} position={t.position} scale={t.scale} />
+      ))}
+
+      {BOLLARD_ZS.map((z) =>
+        [-2.7, 2.7].map((x) => <Bollard key={`${x}-${z}`} position={[x, 0, z]} />),
+      )}
+
+      {/* Modern stone benches */}
+      {[
+        { pos: [5.2, 0.2, 26.5] as const, rotY: -0.12 },
+        { pos: [-2.4, 0.2, 20.8] as const, rotY: Math.PI / 2 },
+        { pos: [6, 0.2, 35] as const, rotY: 0.15 },
+      ].map((b, i) => (
+        <mesh key={i} position={[...b.pos]} rotation={[0, b.rotY, 0]} castShadow receiveShadow>
+          <boxGeometry args={[2.2, 0.4, 0.62]} />
+          <meshStandardMaterial color="#E6E1D5" roughness={0.85} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+export default function Exterior() {
+  return (
+    <group>
+      <Facade />
+      <Roofline />
+      <Plaza />
+    </group>
+  );
+}

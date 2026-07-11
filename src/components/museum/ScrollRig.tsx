@@ -31,6 +31,8 @@ function roomAt(x: number, z: number): RoomId | null {
   for (const b of ROOM_BOUNDS) {
     if (x >= b.minX && x <= b.maxX && z >= b.minZ && z <= b.maxZ) return b.id;
   }
+  // Anywhere north of the facade and outside every room is the forecourt.
+  if (z > 13) return 'plaza';
   return null;
 }
 

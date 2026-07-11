@@ -5,20 +5,19 @@ import { Text, useTexture } from '@react-three/drei';
 import { useMemo } from 'react';
 import * as THREE from 'three';
 
-const CEILING_COLOR = '#EFEBE2';
-const GOLD_COLOR = '#C9A961';
+const CEILING_COLOR = '#F0EDE6';
+// Graphite instead of gold: minimal dark reveals, modern-pavilion trim.
+const TRIM_COLOR = '#26231F';
 const BASE_COLOR = '#2A2622';
-const SKY_COLOR = '#FFF3DC';
-const WALL_HEIGHT = 4;
+const SKY_COLOR = '#FFE9C9';
+export const WALL_HEIGHT = 5;
 const WALL_THICKNESS = 0.2;
-const DOOR_HEIGHT = 2.8;
+const DOOR_HEIGHT = 3.2;
 const BASE_HEIGHT = 0.16;
 const BASE_DEPTH = 0.12;
-const CROWN_HEIGHT = 0.12;
-const CROWN_DEPTH = 0.14;
 const HEADER_HEIGHT = 0.1;
 const HEADER_DEPTH = 0.1;
-const SKYLIGHT_RADIUS = 2.8;
+export const SKYLIGHT_RADIUS = 2.8;
 
 type Side = 'n' | 's' | 'e' | 'w';
 type Opening = { side: Side; at: number; width: number };
@@ -122,7 +121,8 @@ function buildShell(
       }
     }
 
-    // Gold header at the top of each opening.
+    // Dark header reveal at the top of each opening. No crown moulding —
+    // walls die into the ceiling in a clean modern line.
     for (const o of sideOpenings) {
       const oCenter = isHorizontal ? cx + o.at : cz + o.at;
       const headerY = DOOR_HEIGHT - HEADER_HEIGHT / 2;
@@ -137,20 +137,6 @@ function buildShell(
           size: [HEADER_DEPTH, HEADER_HEIGHT, o.width + HEADER_DEPTH],
         });
       }
-    }
-
-    // Crown moulding — continuous gold strip at the wall/ceiling junction.
-    const crownY = WALL_HEIGHT - CROWN_HEIGHT / 2;
-    if (isHorizontal) {
-      gold.push({
-        position: [cx, crownY, wallCoord],
-        size: [w + WALL_THICKNESS, CROWN_HEIGHT, CROWN_DEPTH],
-      });
-    } else {
-      gold.push({
-        position: [wallCoord, crownY, cz],
-        size: [CROWN_DEPTH, CROWN_HEIGHT, d + WALL_THICKNESS],
-      });
     }
   });
 
@@ -201,12 +187,9 @@ export const ROOMS: Room[] = [
     center: [0, 10],
     size: [14, 6],
     hasCeiling: true,
-    ...buildShell(
-      [0, 10],
-      [14, 6],
-      [{ side: 'n', at: 0, width: 3 }],
-      ['s'],
-    ),
+    // North side is the building's front: skipped here, replaced by the
+    // full-height glass curtain wall in Exterior.tsx.
+    ...buildShell([0, 10], [14, 6], [], ['s', 'n']),
   },
 ];
 
@@ -274,7 +257,7 @@ function useShellTextures() {
       map: pc,
       normalMap: pn,
       normalScale: new THREE.Vector2(0.6, 0.6),
-      color: '#E9E2D5',
+      color: '#EDEAE2',
       roughness: 0.92,
     });
 
@@ -313,6 +296,7 @@ function AtriumCeilingWithSkylight({
         geometry={geometry}
         position={[cx, WALL_HEIGHT, cz]}
         rotation={[Math.PI / 2, 0, 0]}
+        castShadow
         receiveShadow
       >
         <meshStandardMaterial
@@ -325,9 +309,9 @@ function AtriumCeilingWithSkylight({
       <mesh position={[cx, WALL_HEIGHT - 0.02, cz]} rotation={[Math.PI / 2, 0, 0]}>
         <ringGeometry args={[SKYLIGHT_RADIUS, SKYLIGHT_RADIUS + 0.1, 64]} />
         <meshStandardMaterial
-          color={GOLD_COLOR}
-          metalness={0.8}
-          roughness={0.3}
+          color={TRIM_COLOR}
+          metalness={0.5}
+          roughness={0.45}
           side={THREE.DoubleSide}
         />
       </mesh>
@@ -427,6 +411,7 @@ export default function MuseumShell({ onRoomClick }: Props) {
                 <mesh
                   position={[cx, WALL_HEIGHT, cz]}
                   rotation={[Math.PI / 2, 0, 0]}
+                  castShadow
                   receiveShadow
                 >
                   <planeGeometry args={[w, d]} />
@@ -463,9 +448,9 @@ export default function MuseumShell({ onRoomClick }: Props) {
               <mesh key={`${room.id}-gold-${i}`} position={t.position} castShadow>
                 <boxGeometry args={t.size} />
                 <meshStandardMaterial
-                  color={GOLD_COLOR}
-                  metalness={0.8}
-                  roughness={0.3}
+                  color={TRIM_COLOR}
+                  metalness={0.5}
+                  roughness={0.45}
                 />
               </mesh>
             ))}
@@ -479,7 +464,7 @@ export default function MuseumShell({ onRoomClick }: Props) {
           position={sign.position}
           rotation={sign.rotation}
           fontSize={0.24}
-          color={GOLD_COLOR}
+          color={TRIM_COLOR}
           anchorX="center"
           anchorY="middle"
           letterSpacing={0.28}

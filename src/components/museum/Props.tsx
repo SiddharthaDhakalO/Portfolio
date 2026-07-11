@@ -71,14 +71,16 @@ function DisplayCase({
 export default function Props() {
   return (
     <group>
-      {/* Atrium — benches on the diagonals, out of the walk line */}
-      <GalleryBench position={[-4.6, 0, 2.6]} rotationY={Math.PI / 4} />
-      <GalleryBench position={[4.6, 0, -2.6]} rotationY={Math.PI / 4} />
+      {/* Atrium — a viewing seat squared up in front of each flagship display,
+          long axis parallel to its wall. Point-symmetric, axis-aligned. */}
+      <GalleryBench position={[-4, 0, 4]} rotationY={Math.PI / 2} />
+      <GalleryBench position={[4, 0, -4]} rotationY={Math.PI / 2} />
 
-      {/* Gallery — one bench in the centre of the walking loop */}
-      <GalleryBench position={[0, 0, -12]} rotationY={Math.PI / 2} />
+      {/* Gallery — one bench in the centre of the walking loop, aligned to the
+          room so you can sit and take in the back wall. */}
+      <GalleryBench position={[0, 0, -12]} rotationY={0} />
 
-      {/* Archive — a pair of glass display cases between the wall displays */}
+      {/* Archive — a pair of glass display cases flanking the room axis */}
       <DisplayCase position={[12, 0, -4.6]} />
       <DisplayCase position={[12, 0, 4.6]} />
     </group>

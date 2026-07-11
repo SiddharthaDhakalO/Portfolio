@@ -1,10 +1,11 @@
 'use client';
 
 import { Canvas } from '@react-three/fiber';
-import { Environment } from '@react-three/drei';
+import { Environment, Sky } from '@react-three/drei';
 import { Suspense } from 'react';
 import ScrollRig from './ScrollRig';
 import MuseumShell from './MuseumShell';
+import Exterior from './Exterior';
 import Lighting from './Lighting';
 import Exhibit from './Exhibit';
 import Plinth from './Plinth';
@@ -65,11 +66,21 @@ export default function Scene({ fov = 60 }: SceneProps) {
     <Canvas
       shadows
       dpr={[1, 1.5]}
-      camera={{ position: [0, 1.6, 12.6], fov }}
+      camera={{ position: [0, 1.6, 41.5], fov }}
       style={{ width: '100%', height: '100%' }}
     >
-      <color attach="background" args={['#D8DEE3']} />
-      <Environment preset="lobby" environmentIntensity={0.9} />
+      {/* Golden hour: warm fallback colour, sunset sky, haze toward the horizon. */}
+      <color attach="background" args={['#E4B98E']} />
+      <fog attach="fog" args={['#E4B98E', 42, 130]} />
+      <Sky
+        distance={450}
+        sunPosition={[-30, 5, 18]}
+        turbidity={6.5}
+        rayleigh={2.2}
+        mieCoefficient={0.018}
+        mieDirectionalG={0.88}
+      />
+      <Environment preset="sunset" environmentIntensity={0.7} />
       <Lighting />
       <ScrollRig />
 
@@ -79,6 +90,7 @@ export default function Scene({ fov = 60 }: SceneProps) {
             cameraBus.glideToWaypoint(id);
           }}
         />
+        <Exterior />
 
         <Plinth position={[-12, 0, 0]} onClick={handleStudioPlinth} />
         <Plinth position={[12, 0, 0]} onClick={handleArchivePlinth} />
@@ -108,7 +120,28 @@ export default function Scene({ fov = 60 }: SceneProps) {
               rotation={slot.rotation}
               image={project.hero}
               projectSlug={project.slug}
+              caption={project.title}
+              width={GALLERY_EXHIBIT_SIZE.width}
+              height={GALLERY_EXHIBIT_SIZE.height}
               onSelect={handleExhibitSelect}
+            />
+          );
+        })}
+
+        {ATRIUM_FEATURE_SLOTS.map((feature) => {
+          const project = projectBySlug(feature.slug);
+          if (!project) return null;
+          return (
+            <Exhibit
+              key={`feature-${feature.slug}`}
+              position={feature.position}
+              rotation={feature.rotation}
+              image={project.hero}
+              projectSlug={project.slug}
+              caption={project.title}
+              width={ATRIUM_FEATURE_SIZE.width}
+              height={ATRIUM_FEATURE_SIZE.height}
+              onSelect={handleFeatureSelect}
             />
           );
         })}

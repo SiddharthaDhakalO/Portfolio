@@ -48,7 +48,7 @@ export default function ScrollHint() {
       }}
     >
       <span style={{ color: '#C9A961', fontSize: 14 }}>↕</span>
-      Scroll to walk the museum
+      Scroll to walk up to the museum
     </div>
   );
 }
