@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { RAIL_CURVE, RAIL_LENGTH, EYE_Y, POIS } from '@/lib/railPath';
 import { railBus } from '@/lib/cameraBus';
-import { ROOMS } from './MuseumShell';
+import { ZONES, FLOOR_W, FLOOR_D, GLASS_Z } from '@/lib/floorplan';
 import { useMuseumStore, type RoomId } from '@/lib/useMuseumStore';
 
 const SCROLL_SPEED = 0.9 / RAIL_LENGTH; // metres of walk per wheel "line"
@@ -16,23 +16,26 @@ const MAX_SPEED = 10 / RAIL_LENGTH; // cap walk speed (m/s in t units)
 const LOOK_AHEAD = 2.6 / RAIL_LENGTH;
 const ARRIVE_EPS = 1.5 / RAIL_LENGTH;
 
-// Rooms ordered smallest-footprint first so doorway overlaps resolve to wings.
-const ROOM_BOUNDS = [...ROOMS]
+// Zones ordered smallest-footprint first so border overlaps resolve to the
+// tighter zone. In the free plan these are proximity regions, not rooms.
+const ZONE_BOUNDS = [...ZONES]
   .sort((a, b) => a.size[0] * a.size[1] - b.size[0] * b.size[1])
   .map((r) => ({
-    id: r.id as RoomId,
-    minX: r.center[0] - r.size[0] / 2 - 0.4,
-    maxX: r.center[0] + r.size[0] / 2 + 0.4,
-    minZ: r.center[1] - r.size[1] / 2 - 0.4,
-    maxZ: r.center[1] + r.size[1] / 2 + 0.4,
+    id: r.id,
+    minX: r.center[0] - r.size[0] / 2,
+    maxX: r.center[0] + r.size[0] / 2,
+    minZ: r.center[1] - r.size[1] / 2,
+    maxZ: r.center[1] + r.size[1] / 2,
   }));
 
 function roomAt(x: number, z: number): RoomId | null {
-  for (const b of ROOM_BOUNDS) {
+  for (const b of ZONE_BOUNDS) {
     if (x >= b.minX && x <= b.maxX && z >= b.minZ && z <= b.maxZ) return b.id;
   }
-  // Anywhere north of the facade and outside every room is the forecourt.
-  if (z > 13) return 'plaza';
+  // Inside the envelope but in no zone — the open centre reads as atrium.
+  if (Math.abs(x) <= FLOOR_W / 2 && Math.abs(z) <= FLOOR_D / 2) return 'atrium';
+  // North of the glass line is the forecourt.
+  if (z > GLASS_Z) return 'plaza';
   return null;
 }
 

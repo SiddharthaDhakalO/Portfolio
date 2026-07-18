@@ -8,14 +8,17 @@ import { useMuseumStore } from '@/lib/useMuseumStore';
 
 const GOLD = '#C9A961';
 
-// Gift-shop east wall: x = 7, room z ∈ [7, 13]. The wall face looks -x.
-const WALL_X = 7 - 0.12;
+// The gift-shop screen blade: a free-standing partition at x = 9 running
+// along z ∈ [7.5, 12.5]. Sketches pin to its west face, which looks -x into
+// the shop zone beside the entry.
+const WALL_X = 9 - 0.12;
 const WALL_ROT: [number, number, number] = [0, -Math.PI / 2, 0];
-// Grid area on that wall (in wall-local coords: u along -z, v up).
+// Grid area on that face (in wall-local coords: u along -z, v up). The blade
+// is only 4 high, so everything tops out below its gold edge reveal.
 const GRID_TOP = 3.15;
 const GRID_BOTTOM = 0.55;
-const GRID_Z_MIN = 7.7;
-const GRID_Z_MAX = 12.3;
+const GRID_Z_MIN = 8.1;
+const GRID_Z_MAX = 11.9;
 const COLS = 5;
 const GAP = 0.09;
 
@@ -127,15 +130,19 @@ export default function SketchWall() {
         <SketchTile key={tile.key} tile={tile} />
       ))}
 
-      {/* Invisible click surface over the whole wall + a visible prompt */}
+      {/* Invisible click surface over the whole wall + a visible prompt.
+          Raycasts pass through the glass curtain, so ignore interactions
+          from far away — you have to actually stand at the wall. */}
       <mesh
         position={[WALL_X + 0.02, 1.9, 10]}
         rotation={WALL_ROT}
         onClick={(e) => {
+          if (e.distance > 7) return;
           e.stopPropagation();
           openSketch();
         }}
         onPointerOver={(e) => {
+          if (e.distance > 7) return;
           e.stopPropagation();
           setHovered(true);
           document.body.style.cursor = 'pointer';

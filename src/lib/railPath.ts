@@ -1,57 +1,59 @@
 import * as THREE from 'three';
-import { PROJECTS } from './projects';
+import { getProjectsByWing } from './projects';
 import { GALLERY_EXHIBIT_SLOTS, ATRIUM_FEATURE_SLOTS } from './exhibitSlots';
+import { GARDEN_X, sculptureZ } from './floorplan';
 import type { RoomId } from './useMuseumStore';
 
 export const EYE_Y = 1.6;
 
-// Ordered walk: begin far out on the plaza with the whole pavilion in view,
-// drift past the name stele and the reflecting pool, arrive under the entry
-// canopy as the glass doors slide open, then through the lobby, down the
-// atrium axis past the two flagship displays, a U-loop of the gallery past
-// every exhibit, then studio, archive, ending under the atrium skylight.
-// Edit the stops to reroute the tour.
-const STOPS: { x: number; z: number }[] = [
-  { x: 0, z: 41.5 }, // 0  plaza start — the pavilion in full view
-  { x: 1.9, z: 36.6 }, // 1  past the name stele
-  { x: 3, z: 31 }, // 2  east of the reflecting pool, three-quarter view
-  { x: 1.9, z: 25 }, // 3  along the pool edge
-  { x: 0.7, z: 20.2 }, // 4  merging onto the entry axis
-  { x: 0, z: 16.6 }, // 5  under the canopy — doors sliding open
-  { x: 0, z: 14.1 }, // 6  threshold
-  { x: 0, z: 12.6 }, // 7  inside the entrance door
-  { x: -1.4, z: 9.8 }, // 8  gift shop (walk beside the plinth, not through it)
-  { x: 0, z: 6.2 }, // 9  north doorway into the atrium
-  { x: 0, z: 4 }, // 10 atrium — west flagship on the left
-  { x: 0, z: -4 }, // 11 atrium — east flagship on the right
-  { x: 0, z: -6.2 }, // 12 south doorway
-  { x: 0, z: -8.4 }, // 13 gallery doorway in
-  { x: 3.6, z: -10.5 }, // 14 approach east display
-  { x: 3.9, z: -12 }, // 15 view east display (project 1)
-  { x: 3.6, z: -14.6 }, // 16 toward back-right
-  { x: 3.4, z: -15.2 }, // 17 view back-right display (project 2)
-  { x: 0, z: -15.5 }, // 18 back wall centre
-  { x: -3.4, z: -15.2 }, // 19 view back-left display (project 3)
-  { x: -3.6, z: -14.6 }, // 20 toward west wall
-  { x: -3.9, z: -12 }, // 21 view west display (project 4)
-  { x: -3.6, z: -10.5 }, // 22 toward exit
-  { x: 0, z: -8.4 }, // 23 gallery doorway out
-  { x: 0, z: -4 }, // 24 atrium
-  { x: -3, z: -0.2 }, // 25 toward studio
-  { x: -8.4, z: 0 }, // 26 studio doorway
-  { x: -10.6, z: 0 }, // 27 studio stop
-  { x: -8.4, z: 0.6 }, // 28 hairpin out
-  { x: -3, z: 0.4 }, // 29 atrium
-  { x: 3, z: 0.2 }, // 30 toward archive
-  { x: 8.4, z: 0 }, // 31 archive doorway
-  { x: 10.6, z: 0 }, // 32 archive stop
-  { x: 8.4, z: -0.6 }, // 33 hairpin out
-  { x: 3, z: -0.2 }, // 34 atrium
-  { x: 0, z: 0.4 }, // 35 end under the skylight
+const GALLERY_PROJECTS = getProjectsByWing('gallery');
+
+// Ordered walk: begin high at the arrival point on the far end of the plaza,
+// then walk the straight processional axis — the ground wordmark resolving
+// underfoot, banners passing, the pool to the right, the sculpture garden to
+// the left — so the building grows in frame while staying still. Through the
+// sliding doors, then one continuous drift through the free-plan hall: past
+// the entry blade to the gift shop, down the open centre, through the gallery
+// slot between the two blades, across the open south, up into the studio
+// zone, and back to rest in the middle of the hall. Edit the stops to
+// reroute the tour.
+const STOPS: { x: number; z: number; y?: number }[] = [
+  { x: 0, z: 50, y: 4.2 }, // 0  arrival — high, the axis and wordmark below
+  { x: 0, z: 45.5, y: 2.6 }, // 1  descending onto the axis
+  { x: 0, z: 41 }, // 2  eye level — stele right, banner line ahead-left
+  { x: 0, z: 35.5 }, // 3  banners passing on the left
+  { x: 0, z: 29.5 }, // 4  sculpture garden on the right, pool on the left
+  { x: 0, z: 23.5 }, // 5  the last pedestals
+  { x: 0, z: 18.6 }, // 6  the empty forecourt before the doors
+  { x: 0, z: 16.8 }, // 7  under the canopy — doors sliding open
+  { x: 0, z: 14.4 }, // 8  threshold at the glass line
+  { x: 0, z: 12.4 }, // 9  inside — the entry blade deflects the view left
+  { x: 2.6, z: 11.2 }, // 10 drifting east toward the gift shop
+  { x: 4.6, z: 9.7 }, // 11 gift shop — plinth left, visitor wall ahead
+  { x: 1.6, z: 8.4 }, // 12 merging back toward the open centre
+  { x: 0, z: 6.3 }, // 13 onto the atrium axis
+  { x: -1.2, z: 3.4 }, // 14 first flagship on the gallery blade
+  { x: -3.2, z: 0.6 }, // 15 atrium centre-west
+  { x: -7.6, z: -0.6 }, // 16 mouth of the gallery slot
+  { x: -10.3, z: -0.9 }, // 17 view north-blade east work (project 1)
+  { x: -13.7, z: -0.1 }, // 18 view north-blade west work (project 2)
+  { x: -16.6, z: -1.9 }, // 19 U-turn at the west end
+  { x: -14.7, z: -3.9 }, // 20 view south-blade west work (project 3)
+  { x: -11.3, z: -3.7 }, // 21 view south-blade east work (project 4)
+  { x: -8.2, z: -5.6 }, // 22 out of the slot
+  { x: -3.5, z: -7.6 }, // 23 across the open south of the hall
+  { x: 2.5, z: -7.2 }, // 24 the long sightline back through everything
+  { x: 8, z: -6.6 }, // 25 toward the studio zone
+  { x: 13, z: -4.8 }, // 26 studio south
+  { x: 13.4, z: -0.6 }, // 27 studio stop — the plinth
+  { x: 11.6, z: 2.9 }, // 28 through the gap between the studio blades
+  { x: 7.2, z: 4.6 }, // 29 back toward the centre
+  { x: 3.0, z: 2.8 }, // 30 atrium east
+  { x: 0, z: 0.6 }, // 31 end — the open centre of the hall
 ];
 
 export const RAIL_CURVE = new THREE.CatmullRomCurve3(
-  STOPS.map((s) => new THREE.Vector3(s.x, EYE_Y, s.z)),
+  STOPS.map((s) => new THREE.Vector3(s.x, s.y ?? EYE_Y, s.z)),
   false,
   'centripetal',
   0.5,
@@ -85,22 +87,29 @@ function tOfStop(index: number): number {
   return tNearest(s.x, s.z);
 }
 
-// Where map-HUD jumps land, per room.
+// Where map-HUD jumps land, per room. The archive is the outdoor garden.
 export const ROOM_T: Record<RoomId, number> = {
   plaza: tOfStop(2),
-  giftshop: tOfStop(8),
-  atrium: tOfStop(10),
-  gallery: tOfStop(15),
+  // The garden stop: abreast of the middle of the pedestal line.
+  archive: tNearest(0, 29.5),
+  giftshop: tOfStop(11),
+  atrium: tOfStop(31),
+  gallery: tOfStop(17),
   studio: tOfStop(27),
-  archive: tOfStop(32),
 };
 
 // Where the walk passes closest to each exhibit.
 export const EXHIBIT_T: Record<string, number> = Object.fromEntries(
-  PROJECTS.slice(0, GALLERY_EXHIBIT_SLOTS.length).map((p, i) => {
+  GALLERY_PROJECTS.slice(0, GALLERY_EXHIBIT_SLOTS.length).map((p, i) => {
     const [ex, , ez] = GALLERY_EXHIBIT_SLOTS[i].position;
     return [p.slug, tNearest(ex, ez)];
   }),
+);
+
+// Where the walk passes closest to each garden sculpture (the axis point
+// abreast of its pedestal).
+export const SCULPTURE_T: Record<string, number> = Object.fromEntries(
+  getProjectsByWing('archive').map((p, i) => [p.slug, tNearest(0, sculptureZ(i))]),
 );
 
 // Points of interest the camera softly turns toward while walking past.
@@ -110,14 +119,32 @@ export type Poi = {
   radius: number; // influence radius in metres of path length
 };
 
+// The flagships hang on partition faces looking toward the open centre, so
+// they must be gazed at from spots in front of those faces — the nearest
+// rail point can be behind them.
+const FEATURE_VIEWPOINTS: Record<string, [number, number]> = {
+  'pos-system': [-1.2, 3.4], // seen from the atrium axis on the way in
+  'thi-website': [7.2, 4.6], // seen crossing back from the studio zone
+};
+
 export const POIS: Poi[] = [
-  // Plaza approach — name stele, reflecting pool, then the entrance itself
-  { target: new THREE.Vector3(2.7, 1.6, 38.8), t: tNearest(0.9, 39.5), radius: 3 },
-  { target: new THREE.Vector3(-5.7, 0.2, 24), t: tNearest(2.6, 28), radius: 4 },
-  { target: new THREE.Vector3(0, 4.4, 17.8), t: tNearest(1, 21.5), radius: 5 },
-  { target: new THREE.Vector3(0, 2.1, 13.1), t: tNearest(0, 15.5), radius: 3 },
+  // Arrival: hold the facade so the building grows in frame on the descent
+  { target: new THREE.Vector3(0, 3.4, 14), t: tNearest(0, 47), radius: 8 },
+  // The procession — stele right, pool right, sculptures left, then the doors
+  { target: new THREE.Vector3(2.7, 1.6, 38.8), t: tNearest(0, 39.5), radius: 3 },
+  // Glance at the pool before the garden line takes over — their t ranges
+  // must not overlap or the two gazes average out to nothing.
+  { target: new THREE.Vector3(-5.7, 0.2, 26), t: tNearest(0, 33), radius: 2.5 },
+  ...getProjectsByWing('archive').map((p, i) => ({
+    target: new THREE.Vector3(GARDEN_X, 1.3, sculptureZ(i)),
+    t: SCULPTURE_T[p.slug],
+    radius: 3,
+  })),
+  // Kept low and early so the gaze meets the doors, not the canopy soffit.
+  { target: new THREE.Vector3(0, 3, 15.5), t: tNearest(0, 22), radius: 3 },
+  { target: new THREE.Vector3(0, 2.1, 14.1), t: tNearest(0, 15.8), radius: 3 },
   // Gallery exhibits
-  ...PROJECTS.slice(0, GALLERY_EXHIBIT_SLOTS.length).map((p, i) => {
+  ...GALLERY_PROJECTS.slice(0, GALLERY_EXHIBIT_SLOTS.length).map((p, i) => {
     const [ex, ey, ez] = GALLERY_EXHIBIT_SLOTS[i].position;
     return {
       target: new THREE.Vector3(ex, ey, ez),
@@ -125,21 +152,19 @@ export const POIS: Poi[] = [
       radius: 3,
     };
   }),
-  // Atrium flagship displays on the side walls
+  // Atrium flagship displays on the partition faces
   ...ATRIUM_FEATURE_SLOTS.map((f) => {
     const [fx, fy, fz] = f.position;
+    const [vx, vz] = FEATURE_VIEWPOINTS[f.slug] ?? [fx, fz];
     return {
       target: new THREE.Vector3(fx, fy, fz),
-      t: tNearest(fx, fz),
-      radius: 3,
+      t: tNearest(vx, vz),
+      radius: 3.5,
     };
   }),
-  // Plinths
-  { target: new THREE.Vector3(0, 1.2, 10), t: tNearest(-1.4, 9.8), radius: 2 },
-  { target: new THREE.Vector3(-12, 1.2, 0), t: tNearest(-10.6, 0), radius: 3 },
-  { target: new THREE.Vector3(12, 1.2, 0), t: tNearest(10.6, 0), radius: 3 },
-  // Archive certificate wall (glance at the certificates on the way in)
-  { target: new THREE.Vector3(16, 2, 0), t: tNearest(10.6, 0), radius: 2.4 },
-  // Visitor sketch wall on the gift-shop east wall
-  { target: new THREE.Vector3(6.9, 1.9, 10), t: tNearest(-1.4, 9.8), radius: 2 },
+  // Plinths: gift shop, studio
+  { target: new THREE.Vector3(5.4, 1.2, 10.8), t: tNearest(4.6, 9.7), radius: 2.5 },
+  { target: new THREE.Vector3(14.2, 1.2, 1.6), t: tNearest(13.4, -0.6), radius: 3 },
+  // Visitor sketch wall on the gift-shop screen blade
+  { target: new THREE.Vector3(8.9, 1.9, 10), t: tNearest(4.6, 9.7), radius: 2 },
 ];

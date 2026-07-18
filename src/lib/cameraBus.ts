@@ -1,4 +1,4 @@
-import { ROOM_T, EXHIBIT_T } from './railPath';
+import { ROOM_T, EXHIBIT_T, SCULPTURE_T } from './railPath';
 import type { RoomId } from './useMuseumStore';
 
 // Low-level rail bus: the ScrollRig subscribes and walks to a path parameter.
@@ -18,13 +18,19 @@ export const railBus = {
   },
 };
 
-// High-level API kept from the glide era: named destinations. Room names and
-// 'exhibit:<slug>' resolve to rail positions.
+// High-level API kept from the glide era: named destinations. Room names,
+// 'exhibit:<slug>' and 'sculpture:<slug>' resolve to rail positions.
 export const cameraBus = {
   glideToWaypoint(name: string, onArrive?: () => void) {
     if (name.startsWith('exhibit:')) {
       const slug = name.slice('exhibit:'.length);
       const t = EXHIBIT_T[slug];
+      if (t !== undefined) railBus.walkTo(t, onArrive);
+      return;
+    }
+    if (name.startsWith('sculpture:')) {
+      const slug = name.slice('sculpture:'.length);
+      const t = SCULPTURE_T[slug];
       if (t !== undefined) railBus.walkTo(t, onArrive);
       return;
     }

@@ -11,9 +11,9 @@ import Exhibit from './Exhibit';
 import Plinth from './Plinth';
 import Props from './Props';
 import SketchWall from './SketchWall';
-import WallDisplay from './WallDisplay';
-import { ARCHIVE_DISPLAYS, ARCHIVE_DISPLAY_SIZE } from '@/lib/archiveDisplays';
-import { PROJECTS } from '@/lib/projects';
+import SculptureGarden from './SculptureGarden';
+import PlazaApproach from './PlazaApproach';
+import { PROJECTS, getProjectsByWing } from '@/lib/projects';
 import {
   GALLERY_EXHIBIT_SLOTS,
   GALLERY_EXHIBIT_SIZE,
@@ -28,7 +28,10 @@ type SceneProps = {
   fov?: number;
 };
 
-const placedProjects = PROJECTS.slice(0, GALLERY_EXHIBIT_SLOTS.length);
+const placedProjects = getProjectsByWing('gallery').slice(
+  0,
+  GALLERY_EXHIBIT_SLOTS.length,
+);
 const projectBySlug = (slug: string) => PROJECTS.find((p) => p.slug === slug);
 
 export default function Scene({ fov = 60 }: SceneProps) {
@@ -50,12 +53,6 @@ export default function Scene({ fov = 60 }: SceneProps) {
     });
   };
 
-  const handleArchivePlinth = () => {
-    cameraBus.glideToWaypoint('archive', () => {
-      useMuseumStore.getState().openArchive();
-    });
-  };
-
   const handleGiftshopPlinth = () => {
     cameraBus.glideToWaypoint('giftshop', () => {
       useMuseumStore.getState().openGiftshop();
@@ -66,7 +63,7 @@ export default function Scene({ fov = 60 }: SceneProps) {
     <Canvas
       shadows
       dpr={[1, 1.5]}
-      camera={{ position: [0, 1.6, 41.5], fov }}
+      camera={{ position: [0, 4.2, 50], fov }}
       style={{ width: '100%', height: '100%' }}
     >
       {/* Golden hour: warm fallback colour, sunset sky, haze toward the horizon. */}
@@ -92,24 +89,13 @@ export default function Scene({ fov = 60 }: SceneProps) {
         />
         <Exterior />
 
-        <Plinth position={[-12, 0, 0]} onClick={handleStudioPlinth} />
-        <Plinth position={[12, 0, 0]} onClick={handleArchivePlinth} />
-        <Plinth position={[0, 0, 10]} onClick={handleGiftshopPlinth} />
+        <Plinth position={[14.2, 0, 1.6]} onClick={handleStudioPlinth} />
+        <Plinth position={[5.4, 0, 10.8]} onClick={handleGiftshopPlinth} />
 
         <Props />
         <SketchWall />
-
-        {ARCHIVE_DISPLAYS.map((d) => (
-          <WallDisplay
-            key={d.id}
-            position={d.position}
-            rotation={d.rotation}
-            image={d.image}
-            caption={d.caption}
-            width={ARCHIVE_DISPLAY_SIZE.width}
-            height={ARCHIVE_DISPLAY_SIZE.height}
-          />
-        ))}
+        <SculptureGarden />
+        <PlazaApproach />
 
         {placedProjects.map((project, i) => {
           const slot = GALLERY_EXHIBIT_SLOTS[i];

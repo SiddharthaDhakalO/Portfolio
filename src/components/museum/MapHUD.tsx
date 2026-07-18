@@ -3,7 +3,13 @@
 import { useState } from 'react';
 import { cameraBus } from '@/lib/cameraBus';
 import { ROOM_IDS, useMuseumStore, type RoomId } from '@/lib/useMuseumStore';
-import { ROOMS } from './MuseumShell';
+import {
+  ZONES,
+  PARTITIONS,
+  partitionEnds,
+  FLOOR_W,
+  FLOOR_D,
+} from '@/lib/floorplan';
 
 const ROOM_LABELS: Record<RoomId, string> = {
   plaza: 'Plaza',
@@ -23,8 +29,9 @@ const ROOM_LETTERS: Record<RoomId, string> = {
   giftshop: '$',
 };
 
-// The interior rooms come from MuseumShell; the plaza is open ground, so it
-// gets a hand-placed dashed chip covering the forecourt in front of the doors.
+// The interior zones come from the floor plan; in the free plan they are
+// proximity regions, not rooms. The plaza is open ground, so it gets a
+// hand-placed dashed chip covering the forecourt in front of the doors.
 type MapRoom = {
   id: RoomId;
   center: [number, number];
@@ -32,22 +39,25 @@ type MapRoom = {
   dashed?: boolean;
 };
 const MAP_ROOMS: MapRoom[] = [
-  ...ROOMS.map((r) => ({
-    id: r.id as RoomId,
+  ...ZONES.map((r) => ({
+    id: r.id,
     center: r.center,
     size: r.size,
   })),
-  { id: 'plaza', center: [0, 17.5], size: [14, 9], dashed: true },
+  // The arrival end of the axis — the archive zone chip (the sculpture
+  // garden) already covers the flanked stretch nearer the doors.
+  { id: 'plaza', center: [0, 44.5], size: [8, 6], dashed: true },
 ];
 
 // World coords used directly. World x → SVG x; world z → SVG y. Negative z
-// (the gallery wing) ends up at the top of the map, which matches the user's
-// POV: they arrive from the plaza looking toward the gallery.
+// (the far end of the hall) is at the top of the map, matching the user's
+// POV: they arrive from the plaza looking into the hall.
 const PAD = 4;
-const MIN_X = -17 - PAD;
-const MIN_Y = -17 - PAD;
-const VIEW_W = 34 + PAD * 2;
-const VIEW_H = 39 + PAD * 2;
+const MIN_X = -FLOOR_W / 2 - PAD;
+const MIN_Y = -FLOOR_D / 2 - PAD;
+const VIEW_W = FLOOR_W + PAD * 2;
+// Tall enough to reach the plaza chip's far edge (z = 45).
+const VIEW_H = 45 + PAD - MIN_Y;
 
 export default function MapHUD() {
   const currentRoom = useMuseumStore((s) => s.currentRoom);
@@ -111,6 +121,18 @@ export default function MapHUD() {
         role="img"
         aria-label="Museum floor plan navigation"
       >
+        {/* The hall envelope: one outline, glass edge along the bottom */}
+        <rect
+          x={-FLOOR_W / 2}
+          y={-FLOOR_D / 2}
+          width={FLOOR_W}
+          height={FLOOR_D}
+          fill="none"
+          stroke="rgba(201, 169, 97, 0.5)"
+          strokeWidth={0.3}
+          pointerEvents="none"
+        />
+
         {MAP_ROOMS.map((room) => {
           const id = room.id;
           const isCurrent = currentRoom === id;
@@ -166,6 +188,24 @@ export default function MapHUD() {
                 {ROOM_LETTERS[id]}
               </text>
             </g>
+          );
+        })}
+
+        {/* Floating partitions — the free plan's actual walls */}
+        {PARTITIONS.map((p) => {
+          const [[x1, z1], [x2, z2]] = partitionEnds(p);
+          return (
+            <line
+              key={p.id}
+              x1={x1}
+              y1={z1}
+              x2={x2}
+              y2={z2}
+              stroke="rgba(232, 228, 220, 0.75)"
+              strokeWidth={0.5}
+              strokeLinecap="round"
+              pointerEvents="none"
+            />
           );
         })}
       </svg>

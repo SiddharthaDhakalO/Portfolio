@@ -1,3 +1,5 @@
+import { slotOnPartition } from './floorplan';
+
 export type Vec3 = [number, number, number];
 
 export type ExhibitSlot = {
@@ -14,29 +16,32 @@ export type AtriumFeature = {
 
 const GY = 2; // display centre height (metres)
 
-// Gallery: centre (0, -12), size 14 × 10 → x ∈ [-7, 7], z ∈ [-17, -7].
-// Four large displays laid out for the U-shaped walk: down the east wall,
-// across the back wall (right then left), and up the west wall. Project i in
+const slot = (
+  partition: string,
+  face: 'n' | 's',
+  u: number,
+): ExhibitSlot => {
+  const s = slotOnPartition(partition, face, u, GY);
+  return { position: s.position, rotation: [0, s.rotationY, 0] };
+};
+
+// Gallery zone (-x): the two gallery blades form an open viewing slot. The
+// walk enters at the east end, passes the north blade's two works, U-turns
+// at the west end, and returns along the south blade's two. Project i in
 // PROJECTS maps to slot i, so this order also sets the order they're seen.
 export const GALLERY_EXHIBIT_SLOTS: ExhibitSlot[] = [
-  // East wall (faces -x)
-  { position: [6.82, GY, -12], rotation: [0, -Math.PI / 2, 0] },
-  // Back wall, right of centre (faces +z)
-  { position: [3.6, GY, -16.8], rotation: [0, 0, 0] },
-  // Back wall, left of centre (faces +z)
-  { position: [-3.6, GY, -16.8], rotation: [0, 0, 0] },
-  // West wall (faces +x)
-  { position: [-6.82, GY, -12], rotation: [0, Math.PI / 2, 0] },
+  slot('gallery-north', 's', 1.7),
+  slot('gallery-north', 's', -1.7),
+  slot('gallery-south', 'n', -1.7),
+  slot('gallery-south', 'n', 1.7),
 ];
 
-// Atrium: centre (0, 0), size 14 × 14 → side walls at x = ±7.
-// Two flagship projects greet arrivals, offset in z so the walk down the
-// central axis passes one on the left, then the other on the right.
+// Flagships hang mid-hall on partition faces that look toward the open
+// centre: one greets you from the gallery blade as you arrive, the other
+// fronts the studio screen across the atrium.
 export const ATRIUM_FEATURE_SLOTS: AtriumFeature[] = [
-  // West wall (faces +x) — first flagship, seen on the way in
-  { slug: 'pos-system', position: [-6.82, GY, 4], rotation: [0, Math.PI / 2, 0] },
-  // East wall (faces -x) — second flagship
-  { slug: 'thi-website', position: [6.82, GY, -4], rotation: [0, -Math.PI / 2, 0] },
+  { slug: 'pos-system', ...slot('gallery-north', 'n', 0) },
+  { slug: 'thi-website', ...slot('studio-west', 's', 0) },
 ];
 
 export const GALLERY_EXHIBIT_SIZE = { width: 2.5, height: 1.55 };

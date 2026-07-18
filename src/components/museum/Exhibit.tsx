@@ -65,11 +65,15 @@ export default function Exhibit({
   const frameW = matW + FRAME_BORDER * 2;
   const frameH = matH + FRAME_BORDER * 2;
 
+  // Raycasts pass through the glass curtain and over the low partitions, so
+  // ignore interactions from across the hall — walk up to a work to open it.
   const handleSelect = (e: ThreeEvent<MouseEvent>) => {
+    if (e.distance > 10) return;
     e.stopPropagation();
     onSelect(projectSlug);
   };
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
+    if (e.distance > 10) return;
     e.stopPropagation();
     setHovered(true);
     document.body.style.cursor = 'pointer';
