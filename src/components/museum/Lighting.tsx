@@ -6,7 +6,8 @@ import { GALLERY_EXHIBIT_SLOTS, type ExhibitSlot } from '@/lib/exhibitSlots';
 import { PROJECTS } from '@/lib/projects';
 
 const WARM = '#FFE0B0';
-const CEILING_Y = 4.8;
+// Accent fixtures hang from the y=6 ceiling slab, above the 4-high partitions.
+const CEILING_Y = 5.7;
 const ACCENT_OFFSET = 1.6;
 
 type SpotProps = {
@@ -50,26 +51,30 @@ function Spot({
   );
 }
 
+// Displays hang on partition faces at arbitrary angles now, so the accent
+// fixture is offset straight out along the display's facing normal.
 function accentPosFor(slot: ExhibitSlot): [number, number, number] {
   const [px, , pz] = slot.position;
   const ry = slot.rotation[1];
-  if (Math.abs(ry + Math.PI / 2) < 0.1) return [px - ACCENT_OFFSET, CEILING_Y, pz];
-  if (Math.abs(ry - Math.PI / 2) < 0.1) return [px + ACCENT_OFFSET, CEILING_Y, pz];
-  return [px, CEILING_Y, pz + ACCENT_OFFSET];
+  return [
+    px + Math.sin(ry) * ACCENT_OFFSET,
+    CEILING_Y,
+    pz + Math.cos(ry) * ACCENT_OFFSET,
+  ];
 }
 
 const PLINTH_LIGHTS: { center: [number, number, number] }[] = [
-  { center: [-12, 1.4, 0] },
-  { center: [12, 1.4, 0] },
-  { center: [0, 1.4, 10] },
+  { center: [14.2, 1.4, 1.6] }, // studio
+  { center: [5.4, 1.4, 10.8] }, // gift shop
 ];
 
-// Soft fill per wing so no room ever reads as unlit.
+// Soft fill per zone so no corner of the hall ever reads as unlit. (The
+// archive is outdoors now — the sculpture garden reads from the sun alone.)
 const ROOM_FILLS: { pos: [number, number, number]; intensity: number }[] = [
-  { pos: [0, 4, -12], intensity: 5.5 }, // gallery
-  { pos: [-12, 4, 0], intensity: 5.5 }, // studio
-  { pos: [12, 4, 0], intensity: 5.5 }, // archive
-  { pos: [0, 4, 10], intensity: 5 }, // gift shop — glows through the glass at dusk
+  { pos: [-13, 4.5, -1], intensity: 5.5 }, // gallery
+  { pos: [13, 4.5, -1], intensity: 5.5 }, // studio
+  { pos: [0, 4.5, -9], intensity: 4.5 }, // open south of the hall
+  { pos: [5.5, 4.5, 11], intensity: 5 }, // gift shop — glows through the glass at dusk
 ];
 
 // Golden-hour sun: low in the north-west so the facade and plaza catch a warm
@@ -91,10 +96,10 @@ function Sun() {
         castShadow
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
-        shadow-camera-left={-36}
-        shadow-camera-right={36}
-        shadow-camera-top={34}
-        shadow-camera-bottom={-34}
+        shadow-camera-left={-40}
+        shadow-camera-right={40}
+        shadow-camera-top={40}
+        shadow-camera-bottom={-40}
         shadow-camera-near={1}
         shadow-camera-far={100}
         shadow-bias={-0.0004}
@@ -117,11 +122,11 @@ export default function Lighting() {
 
       <Sun />
 
-      {/* Skylight downwash through the atrium hole. */}
+      {/* Warm downwash pooling in the open centre of the hall. */}
       <pointLight
-        position={[0, 6.6, 0]}
+        position={[0, 5.6, 0]}
         color="#FFF3DC"
-        intensity={14}
+        intensity={10}
         distance={16}
         decay={1.4}
       />

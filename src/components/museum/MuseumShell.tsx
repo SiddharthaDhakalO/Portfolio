@@ -1,369 +1,121 @@
 'use client';
 
 import { type ThreeEvent } from '@react-three/fiber';
-import { Text, useTexture } from '@react-three/drei';
+import { Text } from '@react-three/drei';
 import { useMemo } from 'react';
 import * as THREE from 'three';
+import {
+  FLOOR_W,
+  FLOOR_D,
+  CEILING_Y,
+  ROOF_T,
+  GLASS_Z,
+  WALL_T,
+  PARTITION_H,
+  PARTITION_T,
+  PARTITIONS,
+  ZONES,
+  FLOOR_COLOR,
+  SHELL_COLOR,
+  PARTITION_COLOR,
+  GOLD,
+  slotOnPartition,
+} from '@/lib/floorplan';
 
-const CEILING_COLOR = '#F0EDE6';
-// Graphite instead of gold: minimal dark reveals, modern-pavilion trim.
-const TRIM_COLOR = '#26231F';
-const BASE_COLOR = '#2A2622';
-const SKY_COLOR = '#FFE9C9';
-export const WALL_HEIGHT = 5;
-const WALL_THICKNESS = 0.2;
-const DOOR_HEIGHT = 3.2;
-const BASE_HEIGHT = 0.16;
-const BASE_DEPTH = 0.12;
-const HEADER_HEIGHT = 0.1;
-const HEADER_DEPTH = 0.1;
-export const SKYLIGHT_RADIUS = 2.8;
+const HALF_W = FLOOR_W / 2;
+const HALF_D = FLOOR_D / 2;
 
-type Side = 'n' | 's' | 'e' | 'w';
-type Opening = { side: Side; at: number; width: number };
-type Geom = { position: [number, number, number]; size: [number, number, number] };
-
-export type Room = {
-  id: string;
-  center: [number, number];
-  size: [number, number];
-  walls: Geom[];
-  base: Geom[];
-  gold: Geom[];
-  hasCeiling: boolean;
-  skylight?: boolean;
-};
-
-function buildShell(
-  center: [number, number],
-  size: [number, number],
-  openings: Opening[] = [],
-  skipSides: Side[] = [],
-): { walls: Geom[]; base: Geom[]; gold: Geom[] } {
-  const [cx, cz] = center;
-  const [w, d] = size;
-  const halfW = w / 2;
-  const halfD = d / 2;
-  const wallMidY = WALL_HEIGHT / 2;
-  const walls: Geom[] = [];
-  const base: Geom[] = [];
-  const gold: Geom[] = [];
-
-  (['n', 's', 'e', 'w'] as Side[]).forEach((side) => {
-    if (skipSides.includes(side)) return;
-
-    const isHorizontal = side === 'n' || side === 's';
-    const spanStart = isHorizontal ? cx - halfW : cz - halfD;
-    const spanEnd = isHorizontal ? cx + halfW : cz + halfD;
-    const wallCoord =
-      side === 'n'
-        ? cz + halfD
-        : side === 's'
-          ? cz - halfD
-          : side === 'e'
-            ? cx + halfW
-            : cx - halfW;
-
-    const sideOpenings = openings
-      .filter((o) => o.side === side)
-      .sort((a, b) => a.at - b.at);
-
-    const segments: { start: number; end: number }[] = [];
-    let cursor = spanStart;
-    for (const o of sideOpenings) {
-      const oCenter = isHorizontal ? cx + o.at : cz + o.at;
-      const oStart = oCenter - o.width / 2;
-      const oEnd = oCenter + o.width / 2;
-      if (cursor < oStart) segments.push({ start: cursor, end: oStart });
-      cursor = Math.max(cursor, oEnd);
-    }
-    if (cursor < spanEnd) segments.push({ start: cursor, end: spanEnd });
-
-    for (const seg of segments) {
-      const segLen = seg.end - seg.start;
-      const segCenter = (seg.start + seg.end) / 2;
-      if (isHorizontal) {
-        walls.push({
-          position: [segCenter, wallMidY, wallCoord],
-          size: [segLen + WALL_THICKNESS, WALL_HEIGHT, WALL_THICKNESS],
-        });
-        base.push({
-          position: [segCenter, BASE_HEIGHT / 2, wallCoord],
-          size: [segLen + WALL_THICKNESS, BASE_HEIGHT, BASE_DEPTH],
-        });
-      } else {
-        walls.push({
-          position: [wallCoord, wallMidY, segCenter],
-          size: [WALL_THICKNESS, WALL_HEIGHT, segLen + WALL_THICKNESS],
-        });
-        base.push({
-          position: [wallCoord, BASE_HEIGHT / 2, segCenter],
-          size: [BASE_DEPTH, BASE_HEIGHT, segLen + WALL_THICKNESS],
-        });
-      }
-    }
-
-    // Lintel above each doorway opening.
-    const lintelHeight = WALL_HEIGHT - DOOR_HEIGHT;
-    const lintelY = DOOR_HEIGHT + lintelHeight / 2;
-    for (const o of sideOpenings) {
-      const oCenter = isHorizontal ? cx + o.at : cz + o.at;
-      if (isHorizontal) {
-        walls.push({
-          position: [oCenter, lintelY, wallCoord],
-          size: [o.width + WALL_THICKNESS, lintelHeight, WALL_THICKNESS],
-        });
-      } else {
-        walls.push({
-          position: [wallCoord, lintelY, oCenter],
-          size: [WALL_THICKNESS, lintelHeight, o.width + WALL_THICKNESS],
-        });
-      }
-    }
-
-    // Dark header reveal at the top of each opening. No crown moulding —
-    // walls die into the ceiling in a clean modern line.
-    for (const o of sideOpenings) {
-      const oCenter = isHorizontal ? cx + o.at : cz + o.at;
-      const headerY = DOOR_HEIGHT - HEADER_HEIGHT / 2;
-      if (isHorizontal) {
-        gold.push({
-          position: [oCenter, headerY, wallCoord],
-          size: [o.width + HEADER_DEPTH, HEADER_HEIGHT, HEADER_DEPTH],
-        });
-      } else {
-        gold.push({
-          position: [wallCoord, headerY, oCenter],
-          size: [HEADER_DEPTH, HEADER_HEIGHT, o.width + HEADER_DEPTH],
-        });
-      }
-    }
-  });
-
-  return { walls, base, gold };
-}
-
-export const ROOMS: Room[] = [
-  {
-    id: 'atrium',
-    center: [0, 0],
-    size: [14, 14],
-    hasCeiling: true,
-    skylight: true,
-    ...buildShell(
-      [0, 0],
-      [14, 14],
-      [
-        { side: 'n', at: 0, width: 2 },
-        { side: 's', at: 0, width: 2 },
-        { side: 'e', at: 0, width: 2 },
-        { side: 'w', at: 0, width: 2 },
-      ],
-    ),
-  },
-  {
-    id: 'gallery',
-    center: [0, -12],
-    size: [14, 10],
-    hasCeiling: true,
-    ...buildShell([0, -12], [14, 10], [], ['n']),
-  },
-  {
-    id: 'studio',
-    center: [-12, 0],
-    size: [10, 14],
-    hasCeiling: true,
-    ...buildShell([-12, 0], [10, 14], [], ['e']),
-  },
-  {
-    id: 'archive',
-    center: [12, 0],
-    size: [10, 14],
-    hasCeiling: true,
-    ...buildShell([12, 0], [10, 14], [], ['w']),
-  },
-  {
-    id: 'giftshop',
-    center: [0, 10],
-    size: [14, 6],
-    hasCeiling: true,
-    // North side is the building's front: skipped here, replaced by the
-    // full-height glass curtain wall in Exterior.tsx.
-    ...buildShell([0, 10], [14, 6], [], ['s', 'n']),
-  },
-];
-
-type Sign = {
-  text: string;
-  position: [number, number, number];
-  rotation: [number, number, number];
-};
-const SIGN_Y = DOOR_HEIGHT + (WALL_HEIGHT - DOOR_HEIGHT) / 2;
-const SIGN_INSET = WALL_THICKNESS / 2 + 0.001;
-const SIGNS: Sign[] = [
-  { text: 'THE GIFT SHOP', position: [0, SIGN_Y, 7 - SIGN_INSET], rotation: [0, Math.PI, 0] },
-  { text: 'THE GALLERY', position: [0, SIGN_Y, -7 + SIGN_INSET], rotation: [0, 0, 0] },
-  { text: 'THE ARCHIVE', position: [7 - SIGN_INSET, SIGN_Y, 0], rotation: [0, -Math.PI / 2, 0] },
-  { text: 'THE STUDIO', position: [-7 + SIGN_INSET, SIGN_Y, 0], rotation: [0, Math.PI / 2, 0] },
-];
+// Entry: the glass pane between the mullions at x = ±2 is omitted; the
+// sliding doors in Exterior.tsx live in that gap. A transom seals the top.
+const DOOR_HALF = 2;
+const DOOR_H = 3.3;
 
 type Props = {
   onRoomClick?: (id: string, center: [number, number]) => void;
 };
 
-function useShellTextures() {
-  const [woodColor, woodNormal, woodRough, plasterColor, plasterNormal] =
-    useTexture([
-      '/textures/wood-color.jpg',
-      '/textures/wood-normal.jpg',
-      '/textures/wood-rough.jpg',
-      '/textures/plaster-color.jpg',
-      '/textures/plaster-normal.jpg',
-    ]);
-
-  return useMemo(() => {
-    for (const t of [woodColor, woodNormal, woodRough, plasterColor, plasterNormal]) {
-      t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    }
-    woodColor.colorSpace = THREE.SRGBColorSpace;
-    plasterColor.colorSpace = THREE.SRGBColorSpace;
-
-    // One floor material per distinct repeat so planks stay square per room.
-    const floorMatFor = (w: number, d: number) => {
-      const c = woodColor.clone();
-      const n = woodNormal.clone();
-      const r = woodRough.clone();
-      for (const t of [c, n, r]) {
-        t.wrapS = t.wrapT = THREE.RepeatWrapping;
-        t.repeat.set(w / 4, d / 4);
-        t.needsUpdate = true;
-      }
-      return new THREE.MeshStandardMaterial({
-        map: c,
-        normalMap: n,
-        roughnessMap: r,
-        side: THREE.DoubleSide,
-      });
-    };
-
-    const pc = plasterColor.clone();
-    const pn = plasterNormal.clone();
-    for (const t of [pc, pn]) {
-      t.wrapS = t.wrapT = THREE.RepeatWrapping;
-      t.repeat.set(2.5, 1.2);
-      t.needsUpdate = true;
-    }
-    const wallMat = new THREE.MeshStandardMaterial({
-      map: pc,
-      normalMap: pn,
-      normalScale: new THREE.Vector2(0.6, 0.6),
-      color: '#EDEAE2',
-      roughness: 0.92,
-    });
-
-    return { floorMatFor, wallMat };
-  }, [woodColor, woodNormal, woodRough, plasterColor, plasterNormal]);
-}
-
-function AtriumCeilingWithSkylight({
-  center,
-  size,
-}: {
-  center: [number, number];
-  size: [number, number];
-}) {
-  const [cx, cz] = center;
-  const [w, d] = size;
-  const halfW = w / 2;
-  const halfD = d / 2;
-
-  const geometry = useMemo(() => {
-    const shape = new THREE.Shape();
-    shape.moveTo(-halfW, -halfD);
-    shape.lineTo(halfW, -halfD);
-    shape.lineTo(halfW, halfD);
-    shape.lineTo(-halfW, halfD);
-    shape.lineTo(-halfW, -halfD);
-    const hole = new THREE.Path();
-    hole.absarc(0, 0, SKYLIGHT_RADIUS, 0, Math.PI * 2, false);
-    shape.holes.push(hole);
-    return new THREE.ShapeGeometry(shape, 48);
-  }, [halfW, halfD]);
+// Glass curtain wall along +z with slim gold mullions every 4 units.
+function GlassCurtain() {
+  const glass = (
+    <meshPhysicalMaterial
+      color="#DCE8EA"
+      transmission={0.9}
+      thickness={0.5}
+      roughness={0.05}
+      ior={1.5}
+      metalness={0}
+    />
+  );
+  const mullionXs = [-18, -14, -10, -6, -2, 2, 6, 10, 14, 18];
+  const paneHalf = (HALF_W - DOOR_HALF) / 2; // centre of each fixed sheet
+  const z = GLASS_Z + 0.04;
 
   return (
-    <>
-      <mesh
-        geometry={geometry}
-        position={[cx, WALL_HEIGHT, cz]}
-        rotation={[Math.PI / 2, 0, 0]}
-        castShadow
-        receiveShadow
-      >
-        <meshStandardMaterial
-          color={CEILING_COLOR}
-          side={THREE.DoubleSide}
-          roughness={0.95}
-        />
+    <group>
+      {/* Fixed sheets left and right of the entry gap */}
+      {[-1, 1].map((s) => (
+        <mesh key={s} position={[s * (DOOR_HALF + paneHalf), CEILING_Y / 2, z]}>
+          <boxGeometry args={[HALF_W - DOOR_HALF, CEILING_Y, 0.08]} />
+          {glass}
+        </mesh>
+      ))}
+      {/* Transom over the doors */}
+      <mesh position={[0, DOOR_H + (CEILING_Y - DOOR_H) / 2, z]}>
+        <boxGeometry args={[DOOR_HALF * 2, CEILING_Y - DOOR_H, 0.08]} />
+        {glass}
       </mesh>
 
-      <mesh position={[cx, WALL_HEIGHT - 0.02, cz]} rotation={[Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[SKYLIGHT_RADIUS, SKYLIGHT_RADIUS + 0.1, 64]} />
-        <meshStandardMaterial
-          color={TRIM_COLOR}
-          metalness={0.5}
-          roughness={0.45}
-          side={THREE.DoubleSide}
-        />
+      {/* Gold mullions every 4 units */}
+      {mullionXs.map((x) => (
+        <mesh key={x} position={[x, CEILING_Y / 2, z]} castShadow>
+          <boxGeometry args={[0.12, CEILING_Y, 0.18]} />
+          <meshStandardMaterial color={GOLD} metalness={0.7} roughness={0.35} />
+        </mesh>
+      ))}
+      {/* Head channel, and sill channels stopping at the entry gap */}
+      <mesh position={[0, CEILING_Y - 0.05, z]}>
+        <boxGeometry args={[FLOOR_W, 0.1, 0.2]} />
+        <meshStandardMaterial color={GOLD} metalness={0.7} roughness={0.35} />
       </mesh>
-
-      <mesh position={[cx, WALL_HEIGHT + 1.6, cz]} rotation={[Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[SKYLIGHT_RADIUS + 0.5, 48]} />
-        <meshStandardMaterial
-          color={SKY_COLOR}
-          emissive={SKY_COLOR}
-          emissiveIntensity={2.2}
-          side={THREE.DoubleSide}
-          toneMapped={false}
-        />
+      {[-1, 1].map((s) => (
+        <mesh key={s} position={[s * (DOOR_HALF + paneHalf), 0.05, z]}>
+          <boxGeometry args={[HALF_W - DOOR_HALF, 0.1, 0.2]} />
+          <meshStandardMaterial color={GOLD} metalness={0.7} roughness={0.35} />
+        </mesh>
+      ))}
+      {/* Door head — closes the gap between door height and the transom sill */}
+      <mesh position={[0, DOOR_H - 0.05, z]}>
+        <boxGeometry args={[DOOR_HALF * 2, 0.1, 0.2]} />
+        <meshStandardMaterial color={GOLD} metalness={0.7} roughness={0.35} />
       </mesh>
-    </>
+    </group>
   );
 }
 
-// Small emissive downlight discs so wing ceilings aren't blank planes.
-function CeilingDownlights({
-  center,
-  size,
-}: {
-  center: [number, number];
-  size: [number, number];
-}) {
-  const [cx, cz] = center;
-  const [w, d] = size;
-  const positions: [number, number][] = [];
-  const nx = w > d ? 2 : 1;
-  const nz = d > w ? 2 : 1;
-  for (let ix = 0; ix < nx + 1; ix++) {
-    for (let iz = 0; iz < nz + 1; iz++) {
-      positions.push([
-        cx - w / 4 + (ix * w) / (2 * Math.max(1, nx)),
-        cz - d / 4 + (iz * d) / (2 * Math.max(1, nz)),
-      ]);
+// Warm recessed downlights: points of light on the dark ceiling plane.
+function CeilingDownlights() {
+  const positions = useMemo(() => {
+    const pts: [number, number][] = [];
+    for (const x of [-16, -8, 0, 8, 16]) {
+      for (const z of [-10, -3.5, 3.5, 10]) {
+        pts.push([x, z]);
+      }
     }
-  }
+    return pts;
+  }, []);
   return (
     <>
-      {positions.map(([x, z], i) => (
+      {positions.map(([x, z]) => (
         <mesh
-          key={i}
-          position={[x, WALL_HEIGHT - 0.015, z]}
+          key={`${x}:${z}`}
+          position={[x, CEILING_Y - 0.015, z]}
           rotation={[Math.PI / 2, 0, 0]}
         >
-          <circleGeometry args={[0.16, 24]} />
+          <circleGeometry args={[0.14, 24]} />
           <meshStandardMaterial
-            color="#FFF6E4"
-            emissive="#FFF6E4"
-            emissiveIntensity={1.6}
+            color="#FFE9C4"
+            emissive="#FFE9C4"
+            emissiveIntensity={1.7}
             side={THREE.DoubleSide}
             toneMapped={false}
           />
@@ -373,106 +125,108 @@ function CeilingDownlights({
   );
 }
 
-export default function MuseumShell({ onRoomClick }: Props) {
-  const { floorMatFor, wallMat } = useShellTextures();
+// Zone names mounted high on the partition faces that greet the visitor.
+// (The archive has no sign in here — it lives outdoors in the garden.)
+const SIGNS: { text: string; partition: string; face: 'n' | 's' }[] = [
+  { text: 'THE GALLERY', partition: 'gallery-north', face: 's' },
+  { text: 'THE STUDIO', partition: 'studio-west', face: 's' },
+];
 
-  const floorMats = useMemo(() => {
-    const map = new Map<string, THREE.MeshStandardMaterial>();
-    for (const room of ROOMS) {
-      map.set(room.id, floorMatFor(room.size[0], room.size[1]));
+export default function MuseumShell({ onRoomClick }: Props) {
+  const handleFloorClick = (e: ThreeEvent<MouseEvent>) => {
+    e.stopPropagation();
+    if (!onRoomClick) return;
+    // No rooms to hit-test — resolve the click to the nearest zone.
+    let best = ZONES[0];
+    let bestD = Infinity;
+    for (const zone of ZONES) {
+      const d =
+        (zone.center[0] - e.point.x) ** 2 + (zone.center[1] - e.point.z) ** 2;
+      if (d < bestD) {
+        bestD = d;
+        best = zone;
+      }
     }
-    return map;
-  }, [floorMatFor]);
+    onRoomClick(best.id, best.center);
+  };
 
   return (
     <group>
-      {ROOMS.map((room) => {
-        const [cx, cz] = room.center;
-        const [w, d] = room.size;
+      {/* Floor plane — near-black, faintly reflective under the dusk light */}
+      <mesh
+        position={[0, 0, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        receiveShadow
+        onClick={handleFloorClick}
+      >
+        <planeGeometry args={[FLOOR_W, FLOOR_D]} />
+        <meshStandardMaterial
+          color={FLOOR_COLOR}
+          roughness={0.4}
+          metalness={0.15}
+        />
+      </mesh>
+
+      {/* Ceiling slab: one flat box, underside at CEILING_Y */}
+      <mesh position={[0, CEILING_Y + ROOF_T / 2, 0]} castShadow receiveShadow>
+        <boxGeometry args={[FLOOR_W, ROOF_T, FLOOR_D]} />
+        <meshStandardMaterial color={SHELL_COLOR} roughness={0.9} />
+      </mesh>
+      <CeilingDownlights />
+
+      {/* Solid perimeter: south, west, east. The +z side is all glass. */}
+      {(
+        [
+          { pos: [0, CEILING_Y / 2, -HALF_D - WALL_T / 2], size: [FLOOR_W + WALL_T * 2, CEILING_Y, WALL_T] },
+          { pos: [-HALF_W - WALL_T / 2, CEILING_Y / 2, 0], size: [WALL_T, CEILING_Y, FLOOR_D + WALL_T * 2] },
+          { pos: [HALF_W + WALL_T / 2, CEILING_Y / 2, 0], size: [WALL_T, CEILING_Y, FLOOR_D + WALL_T * 2] },
+        ] as { pos: [number, number, number]; size: [number, number, number] }[]
+      ).map((wall, i) => (
+        <mesh key={i} position={wall.pos} castShadow receiveShadow>
+          <boxGeometry args={wall.size} />
+          <meshStandardMaterial color={SHELL_COLOR} roughness={0.9} />
+        </mesh>
+      ))}
+
+      <GlassCurtain />
+
+      {/* Floating partitions — islands of wall, 2 units of air above each */}
+      {PARTITIONS.map((p) => (
+        <group
+          key={p.id}
+          position={[p.position[0], 0, p.position[1]]}
+          rotation={[0, p.rotation, 0]}
+        >
+          <mesh position={[0, PARTITION_H / 2, 0]} castShadow receiveShadow>
+            <boxGeometry args={[p.length, PARTITION_H, PARTITION_T]} />
+            <meshStandardMaterial color={PARTITION_COLOR} roughness={0.85} />
+          </mesh>
+          {/* Slim gold reveal along the top edge */}
+          <mesh position={[0, PARTITION_H + 0.015, 0]}>
+            <boxGeometry args={[p.length, 0.03, PARTITION_T + 0.02]} />
+            <meshStandardMaterial color={GOLD} metalness={0.7} roughness={0.35} />
+          </mesh>
+        </group>
+      ))}
+
+      {SIGNS.map((sign) => {
+        const slot = slotOnPartition(sign.partition, sign.face, 0, 3.5);
         return (
-          <group key={room.id}>
-            <mesh
-              position={[cx, 0, cz]}
-              rotation={[-Math.PI / 2, 0, 0]}
-              receiveShadow
-              material={floorMats.get(room.id)}
-              onClick={(e: ThreeEvent<MouseEvent>) => {
-                e.stopPropagation();
-                onRoomClick?.(room.id, room.center);
-              }}
-            >
-              <planeGeometry args={[w, d]} />
-            </mesh>
-
-            {room.hasCeiling && room.skylight ? (
-              <AtriumCeilingWithSkylight center={room.center} size={room.size} />
-            ) : room.hasCeiling ? (
-              <>
-                <mesh
-                  position={[cx, WALL_HEIGHT, cz]}
-                  rotation={[Math.PI / 2, 0, 0]}
-                  castShadow
-                  receiveShadow
-                >
-                  <planeGeometry args={[w, d]} />
-                  <meshStandardMaterial
-                    color={CEILING_COLOR}
-                    side={THREE.DoubleSide}
-                    roughness={0.95}
-                  />
-                </mesh>
-                <CeilingDownlights center={room.center} size={room.size} />
-              </>
-            ) : null}
-
-            {room.walls.map((wall, i) => (
-              <mesh
-                key={`${room.id}-wall-${i}`}
-                position={wall.position}
-                castShadow
-                receiveShadow
-                material={wallMat}
-              >
-                <boxGeometry args={wall.size} />
-              </mesh>
-            ))}
-
-            {room.base.map((b, i) => (
-              <mesh key={`${room.id}-base-${i}`} position={b.position} castShadow>
-                <boxGeometry args={b.size} />
-                <meshStandardMaterial color={BASE_COLOR} roughness={0.6} />
-              </mesh>
-            ))}
-
-            {room.gold.map((t, i) => (
-              <mesh key={`${room.id}-gold-${i}`} position={t.position} castShadow>
-                <boxGeometry args={t.size} />
-                <meshStandardMaterial
-                  color={TRIM_COLOR}
-                  metalness={0.5}
-                  roughness={0.45}
-                />
-              </mesh>
-            ))}
-          </group>
+          <Text
+            key={sign.text}
+            position={slot.position}
+            rotation={[0, slot.rotationY, 0]}
+            fontSize={0.24}
+            color={GOLD}
+            anchorX="center"
+            anchorY="middle"
+            letterSpacing={0.28}
+            fontWeight={600}
+          >
+            {sign.text}
+          </Text>
         );
       })}
-
-      {SIGNS.map((sign) => (
-        <Text
-          key={sign.text}
-          position={sign.position}
-          rotation={sign.rotation}
-          fontSize={0.24}
-          color={TRIM_COLOR}
-          anchorX="center"
-          anchorY="middle"
-          letterSpacing={0.28}
-          fontWeight={600}
-        >
-          {sign.text}
-        </Text>
-      ))}
     </group>
   );
 }

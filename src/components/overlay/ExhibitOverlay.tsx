@@ -17,16 +17,18 @@ export default function ExhibitOverlay() {
     <OverlayPanel isOpen={open} onClose={close} ariaLabelledBy="exhibit-title">
       {project && (
         <>
-          <div style={{ position: 'relative', width: '100%', aspectRatio: '8 / 5' }}>
-            <Image
-              src={project.hero}
-              alt={`${project.title} hero`}
-              fill
-              sizes="(max-width: 560px) 100vw, 560px"
-              style={{ objectFit: 'cover' }}
-              priority
-            />
-          </div>
+          {project.hero && (
+            <div style={{ position: 'relative', width: '100%', aspectRatio: '8 / 5' }}>
+              <Image
+                src={project.hero}
+                alt={`${project.title} hero`}
+                fill
+                sizes="(max-width: 560px) 100vw, 560px"
+                style={{ objectFit: 'cover' }}
+                priority
+              />
+            </div>
+          )}
 
           <div style={{ padding: '32px 40px 48px' }}>
             <Plaque project={project} />

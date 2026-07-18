@@ -45,11 +45,15 @@ export default function Plinth({ position, onClick }: Props) {
     <group
       ref={groupRef}
       position={[position[0], position[1] + HEIGHT / 2, position[2]]}
+      // Raycasts pass through the glass curtain, so ignore interactions from
+      // far away — the plinth is something you walk up to.
       onClick={(e: ThreeEvent<MouseEvent>) => {
+        if (e.distance > 10) return;
         e.stopPropagation();
         onClick();
       }}
       onPointerOver={(e: ThreeEvent<PointerEvent>) => {
+        if (e.distance > 10) return;
         e.stopPropagation();
         setHovered(true);
         document.body.style.cursor = 'pointer';

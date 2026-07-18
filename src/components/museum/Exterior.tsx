@@ -4,10 +4,10 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { MeshReflectorMaterial, Text } from '@react-three/drei';
 import * as THREE from 'three';
-import { ROOMS, WALL_HEIGHT, SKYLIGHT_RADIUS } from './MuseumShell';
+import { GLASS_Z, CEILING_Y, ROOF_T, FLOOR_W, FLOOR_D } from '@/lib/floorplan';
 
-// The building's front plane — the gift-shop lobby's north edge.
-export const FACADE_Z = 13;
+// The building's front plane — the free-plan hall's glass curtain line.
+export const FACADE_Z = GLASS_Z;
 
 const WHITE = '#F2EFE8';
 const CONCRETE = '#C7C1B4';
@@ -41,18 +41,19 @@ function SlidingDoors() {
     const dz = camera.position.z - FACADE_Z;
     const target = Math.hypot(dx, dz) < 8 ? 1 : 0;
     open.current += (target - open.current) * Math.min(1, 3.2 * dt);
-    const slide = open.current * 1.8;
-    if (left.current) left.current.position.x = -0.875 - slide;
-    if (right.current) right.current.position.x = 0.875 + slide;
+    const slide = open.current * 1.9;
+    if (left.current) left.current.position.x = -0.98 - slide;
+    if (right.current) right.current.position.x = 0.98 + slide;
   });
 
+  // Two 1.94-wide leaves fill the 4-unit gap between the shell's mullions.
   const panel = (
     <>
       <mesh position={[0, 1.64, 0]}>
-        <boxGeometry args={[1.74, 3.2, 0.05]} />
+        <boxGeometry args={[1.94, 3.2, 0.05]} />
         <meshStandardMaterial {...glassProps} opacity={0.22} />
       </mesh>
-      {[-0.86, 0.86].map((x) => (
+      {[-0.96, 0.96].map((x) => (
         <mesh key={x} position={[x, 1.64, 0]}>
           <boxGeometry args={[0.06, 3.28, 0.09]} />
           <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.45} />
@@ -60,7 +61,7 @@ function SlidingDoors() {
       ))}
       {[0.035, 3.245].map((y) => (
         <mesh key={y} position={[0, y, 0]}>
-          <boxGeometry args={[1.78, 0.07, 0.09]} />
+          <boxGeometry args={[1.98, 0.07, 0.09]} />
           <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.45} />
         </mesh>
       ))}
@@ -69,54 +70,17 @@ function SlidingDoors() {
 
   return (
     <group position={[0, 0, FACADE_Z - 0.18]}>
-      <group ref={left} position={[-0.875, 0, 0]}>{panel}</group>
-      <group ref={right} position={[0.875, 0, 0]}>{panel}</group>
+      <group ref={left} position={[-0.98, 0, 0]}>{panel}</group>
+      <group ref={right} position={[0.98, 0, 0]}>{panel}</group>
     </group>
   );
 }
 
 function Facade() {
-  const mullionXs = [-5.9, -4.52, -3.14, -1.75, 1.75, 3.14, 4.52, 5.9];
+  // The glass curtain wall itself (panes + gold mullions) is part of
+  // MuseumShell — out here only the entry apparatus remains.
   return (
     <group>
-      {/* Solid white piers bookending the glass wall */}
-      {[-6.45, 6.45].map((x) => (
-        <mesh key={x} position={[x, WALL_HEIGHT / 2, FACADE_Z]} castShadow receiveShadow>
-          <boxGeometry args={[1.1, WALL_HEIGHT, 0.35]} />
-          <meshStandardMaterial color={WHITE} roughness={0.85} />
-        </mesh>
-      ))}
-
-      {/* Fixed glazing: two full-height panes + a band above the doors */}
-      {[-3.825, 3.825].map((x) => (
-        <mesh key={x} position={[x, WALL_HEIGHT / 2, FACADE_Z]}>
-          <boxGeometry args={[4.15, WALL_HEIGHT, 0.06]} />
-          <meshStandardMaterial {...glassProps} />
-        </mesh>
-      ))}
-      <mesh position={[0, 4.15, FACADE_Z]}>
-        <boxGeometry args={[3.5, 1.7, 0.06]} />
-        <meshStandardMaterial {...glassProps} />
-      </mesh>
-
-      {/* Mullions and channels */}
-      {mullionXs.map((x) => (
-        <mesh key={x} position={[x, WALL_HEIGHT / 2, FACADE_Z]} castShadow>
-          <boxGeometry args={[0.1, WALL_HEIGHT, 0.16]} />
-          <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.45} />
-        </mesh>
-      ))}
-      {[0.05, WALL_HEIGHT - 0.05].map((y) => (
-        <mesh key={y} position={[0, y, FACADE_Z]}>
-          <boxGeometry args={[11.8, 0.1, 0.16]} />
-          <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.45} />
-        </mesh>
-      ))}
-      <mesh position={[0, 3.35, FACADE_Z]}>
-        <boxGeometry args={[3.6, 0.1, 0.16]} />
-        <meshStandardMaterial color={DARK} metalness={0.5} roughness={0.45} />
-      </mesh>
-
       <SlidingDoors />
 
       {/* Cantilevered entry canopy on two thin steel columns */}
@@ -162,55 +126,19 @@ function Facade() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Roofline: floating parapet slabs, raised atrium mass, skylight drum */
+/* Roofline: one floating white slab over the whole dark glass hall    */
 /* ------------------------------------------------------------------ */
 
-const SLAB_H = 0.58;
-// Slabs start just above the ceiling planes so nothing pokes into the rooms.
-const SLAB_BASE = WALL_HEIGHT + 0.02;
+const SLAB_H = 0.55;
+// Sits on top of the shell's ceiling box and overhangs the envelope.
+const SLAB_BASE = CEILING_Y + ROOF_T;
 
 function Roofline() {
   return (
-    <group>
-      {ROOMS.filter((r) => r.id !== 'atrium').map((room) => (
-        <mesh
-          key={`slab-${room.id}`}
-          position={[room.center[0], SLAB_BASE + SLAB_H / 2, room.center[1]]}
-          castShadow
-        >
-          <boxGeometry args={[room.size[0] + 0.5, SLAB_H, room.size[1] + 0.5]} />
-          <meshStandardMaterial color={WHITE} roughness={0.85} />
-        </mesh>
-      ))}
-
-      {/* Atrium reads as the tall central mass: a parapet band rising above
-          the wings (hollow, so it never covers the skylight hole). */}
-      {[
-        { pos: [0, 0, 7.025] as const, size: [14.5, 1.6, 0.45] as const },
-        { pos: [0, 0, -7.025] as const, size: [14.5, 1.6, 0.45] as const },
-        { pos: [7.025, 0, 0] as const, size: [0.45, 1.6, 13.6] as const },
-        { pos: [-7.025, 0, 0] as const, size: [0.45, 1.6, 13.6] as const },
-      ].map((band, i) => (
-        <mesh
-          key={`atrium-parapet-${i}`}
-          position={[band.pos[0], SLAB_BASE + 0.8, band.pos[2]]}
-          castShadow
-        >
-          <boxGeometry args={[...band.size]} />
-          <meshStandardMaterial color={WHITE} roughness={0.85} />
-        </mesh>
-      ))}
-
-      {/* Skylight drum crowning the atrium */}
-      <mesh position={[0, 6.25, 0]} castShadow>
-        <cylinderGeometry args={[SKYLIGHT_RADIUS + 0.7, SKYLIGHT_RADIUS + 0.7, 2.4, 48, 1, true]} />
-        <meshStandardMaterial color={WHITE} roughness={0.85} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh position={[0, 7.44, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[SKYLIGHT_RADIUS + 0.7, 48]} />
-        <meshStandardMaterial color={WHITE} roughness={0.85} side={THREE.DoubleSide} />
-      </mesh>
-    </group>
+    <mesh position={[0, SLAB_BASE + SLAB_H / 2, 0]} castShadow>
+      <boxGeometry args={[FLOOR_W + 1.2, SLAB_H, FLOOR_D + 1.2]} />
+      <meshStandardMaterial color={WHITE} roughness={0.85} />
+    </mesh>
   );
 }
 
@@ -238,26 +166,6 @@ function Tree({
       <mesh position={[0.3, 2.55, 0.1]} castShadow>
         <icosahedronGeometry args={[0.6, 0]} />
         <meshStandardMaterial color="#8A9158" roughness={0.9} flatShading />
-      </mesh>
-    </group>
-  );
-}
-
-function Bollard({ position }: { position: [number, number, number] }) {
-  return (
-    <group position={position}>
-      <mesh position={[0, 0.4, 0]} castShadow>
-        <cylinderGeometry args={[0.075, 0.075, 0.8, 12]} />
-        <meshStandardMaterial color={DARK} metalness={0.4} roughness={0.5} />
-      </mesh>
-      <mesh position={[0, 0.78, 0]}>
-        <cylinderGeometry args={[0.078, 0.078, 0.06, 12]} />
-        <meshStandardMaterial
-          color="#FFD9A0"
-          emissive="#FFD9A0"
-          emissiveIntensity={2}
-          toneMapped={false}
-        />
       </mesh>
     </group>
   );
@@ -361,18 +269,18 @@ function NameStele() {
   );
 }
 
+// The east trees sit behind the sculpture line so the garden reads layered:
+// axis, banners, sculptures, trees.
 const TREES: { position: [number, number, number]; scale: number }[] = [
-  { position: [6.5, 0, 17.5], scale: 1.15 },
+  { position: [10.5, 0, 17.5], scale: 1.15 },
   { position: [9.8, 0, 23.5], scale: 1.3 },
-  { position: [7.6, 0, 31.5], scale: 1 },
+  { position: [9.4, 0, 32.5], scale: 1 },
   { position: [10.2, 0, 37.5], scale: 1.25 },
-  { position: [5.6, 0, 41], scale: 0.9 },
+  { position: [5.6, 0, 42.5], scale: 0.9 },
   { position: [-10.8, 0, 19.5], scale: 1.2 },
   { position: [-11.6, 0, 28], scale: 1 },
   { position: [-9.2, 0, 35.5], scale: 1.15 },
 ];
-
-const BOLLARD_ZS = [15.8, 21.8, 27.8, 33.8, 39.8];
 
 function Plaza() {
   return (
@@ -394,15 +302,11 @@ function Plaza() {
         <Tree key={i} position={t.position} scale={t.scale} />
       ))}
 
-      {BOLLARD_ZS.map((z) =>
-        [-2.7, 2.7].map((x) => <Bollard key={`${x}-${z}`} position={[x, 0, z]} />),
-      )}
-
-      {/* Modern stone benches */}
+      {/* Modern stone benches — one faces the sculpture line from the east */}
       {[
-        { pos: [5.2, 0.2, 26.5] as const, rotY: -0.12 },
+        { pos: [8.9, 0.2, 27.8] as const, rotY: Math.PI / 2 },
         { pos: [-2.4, 0.2, 20.8] as const, rotY: Math.PI / 2 },
-        { pos: [6, 0.2, 35] as const, rotY: 0.15 },
+        { pos: [-5.6, 0.2, 33.5] as const, rotY: -0.15 },
       ].map((b, i) => (
         <mesh key={i} position={[...b.pos]} rotation={[0, b.rotY, 0]} castShadow receiveShadow>
           <boxGeometry args={[2.2, 0.4, 0.62]} />

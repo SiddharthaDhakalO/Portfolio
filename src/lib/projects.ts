@@ -1,8 +1,13 @@
-// Edit this list to add / rename / re-order projects. Each entry produces one
-// framed Exhibit in the gallery (capped at the number of slots in exhibitSlots).
-// Hero images live in /public/exhibits/<slug>.jpg.
+// Edit this list to add / rename / re-order projects. Every entry opens the
+// same 2D case-study overlay; the `wing` decides its 3D placement — 'gallery'
+// entries hang as framed Exhibits inside (capped at the number of slots in
+// exhibitSlots, hero images in /public/exhibits/<slug>.jpg), 'archive'
+// entries stand as sculptures in the plaza garden (hero '' — no image).
+export type Wing = 'gallery' | 'archive';
+
 export type Project = {
   slug: string;
+  wing: Wing;
   title: string;
   year: string;
   medium: string;
@@ -20,6 +25,7 @@ export type Project = {
 export const PROJECTS: Project[] = [
   {
     slug: 'pos-system',
+    wing: 'gallery',
     title: 'Point of Sale (POS) System',
     year: '2024',
     medium: 'Blazor (.NET) · PostgreSQL · Minimal API',
@@ -55,6 +61,7 @@ export const PROJECTS: Project[] = [
   },
   {
     slug: 'kanban',
+    wing: 'gallery',
     title: 'Kanban — a Jira / Trello-style board',
     year: '2023',
     medium: 'ReactJS · JavaScript · CSS3',
@@ -81,6 +88,7 @@ export const PROJECTS: Project[] = [
   },
   {
     slug: 'flutter-weather',
+    wing: 'gallery',
     title: 'Flutter Weather',
     year: '2023',
     medium: 'Flutter · Dart',
@@ -105,6 +113,7 @@ export const PROJECTS: Project[] = [
   },
   {
     slug: 'thi-website',
+    wing: 'gallery',
     title: 'The High Innovations — Company Website',
     year: '2024',
     medium: 'HTML5 · CSS3 · JavaScript',
@@ -124,4 +133,81 @@ export const PROJECTS: Project[] = [
     impact:
       "Established The High Innovations' first public web presence — the front door customers see and partners cite.",
   },
+
+  // --- The Archive wing: experiments and early pieces, shown as sculptures
+  // --- in the plaza garden rather than framed on a wall.
+  {
+    slug: 'theme-flutter',
+    wing: 'archive',
+    title: 'theme_Flutter',
+    year: '2023',
+    medium: 'Flutter · Dart',
+    role: 'Developer (experiment)',
+    tools: ['Flutter', 'Dart'],
+    hero: '',
+    blurb:
+      'A Flutter theming experiment — exploring how a single app can switch its whole look and feel.',
+    challenge:
+      'Make theming a first-class concern: one codebase, many skins, switched live without restarting the app.',
+    process: [
+      'Modelled light / dark / custom themes as data.',
+      'Wired theme switching through the widget tree with Flutter theming primitives.',
+    ],
+    artifacts: ['Flutter theming playground'],
+    impact:
+      'The groundwork for how later app work handled theming and visual consistency.',
+    link: {
+      label: 'View on GitHub',
+      url: 'https://github.com/SiddharthaDhakalO/theme_Flutter',
+    },
+  },
+  {
+    slug: 'setstate-blockc',
+    wing: 'archive',
+    title: 'SetState-BlockC',
+    year: '2022',
+    medium: 'C++',
+    role: 'Student (foundations)',
+    tools: ['C++'],
+    hero: '',
+    blurb:
+      'An early programming piece from the foundations — kept here as part of the provenance.',
+    challenge:
+      'Learn how state and control flow actually work, close to the metal, before any framework hides them.',
+    process: [
+      'Wrote and rewrote small C++ programs until the mental model stuck.',
+    ],
+    artifacts: ['C++ exercises repository'],
+    impact:
+      'The foundation everything later — web, mobile, 3D — was built on.',
+    link: {
+      label: 'View on GitHub',
+      url: 'https://github.com/SiddharthaDhakalO/SetState-BlockC',
+    },
+  },
+  {
+    slug: 'this-museum',
+    wing: 'archive',
+    title: 'This Museum',
+    year: '2026',
+    medium: 'React Three Fiber · Next.js · Drei',
+    role: 'Designer & Developer',
+    tools: ['React Three Fiber', 'Next.js', 'Drei', 'Three.js', 'TypeScript'],
+    hero: '',
+    blurb:
+      'The building around you. A 3D portfolio built from primitives, vibe-coded with AI agents — the newest experiment in the collection.',
+    challenge:
+      'Present a portfolio as a place: a modernist pavilion you walk through, not a page you scroll past.',
+    process: [
+      'Built the free-plan hall, plaza and rail walk procedurally — no downloaded models.',
+      'Drove the whole layout from data files so the architecture can be tuned by numbers.',
+    ],
+    artifacts: ['This building', 'The walk you are on right now'],
+    impact:
+      'The portfolio itself became the proof of work.',
+  },
 ];
+
+export function getProjectsByWing(wing: Wing): Project[] {
+  return PROJECTS.filter((p) => p.wing === wing);
+}
