@@ -208,45 +208,50 @@ function ReflectingPool() {
 }
 
 function NameStele() {
+  // Plate widened to 1.7 (and nudged east, clear of the entry path) so the
+  // longest line — SIDDHARTHA — sits comfortably within the stone with margin.
   return (
-    <group position={[2.7, 0, 38.8]}>
+    <group position={[3.05, 0, 38.8]}>
       <mesh position={[0, 1.35, 0]} castShadow>
-        <boxGeometry args={[1.5, 2.7, 0.22]} />
+        <boxGeometry args={[1.7, 2.7, 0.22]} />
         <meshStandardMaterial color="#211E1A" roughness={0.6} />
       </mesh>
       <Text
         position={[0, 2.18, 0.12]}
-        fontSize={0.13}
+        fontSize={0.115}
         color="#CFC8BA"
         anchorX="center"
         anchorY="middle"
-        letterSpacing={0.42}
+        letterSpacing={0.32}
+        maxWidth={1.5}
       >
         THE MUSEUM OF
       </Text>
       <Text
         position={[0, 1.82, 0.12]}
-        fontSize={0.3}
+        fontSize={0.2}
         color="#F5F2EA"
         anchorX="center"
         anchorY="middle"
-        letterSpacing={0.16}
+        letterSpacing={0.06}
         fontWeight={600}
+        maxWidth={1.5}
       >
         SIDDHARTHA
       </Text>
       <Text
-        position={[0, 1.44, 0.12]}
-        fontSize={0.3}
+        position={[0, 1.46, 0.12]}
+        fontSize={0.2}
         color="#F5F2EA"
         anchorX="center"
         anchorY="middle"
-        letterSpacing={0.16}
+        letterSpacing={0.06}
         fontWeight={600}
+        maxWidth={1.5}
       >
         DHAKAL
       </Text>
-      <mesh position={[0, 1.1, 0.12]}>
+      <mesh position={[0, 1.14, 0.12]}>
         <boxGeometry args={[0.9, 0.018, 0.01]} />
         <meshStandardMaterial
           color="#FFD9A0"
@@ -256,12 +261,13 @@ function NameStele() {
         />
       </mesh>
       <Text
-        position={[0, 0.88, 0.12]}
-        fontSize={0.1}
+        position={[0, 0.9, 0.12]}
+        fontSize={0.088}
         color="#9E968A"
         anchorX="center"
         anchorY="middle"
-        letterSpacing={0.3}
+        letterSpacing={0.2}
+        maxWidth={1.5}
       >
         FRONTEND · KATHMANDU
       </Text>
@@ -269,8 +275,8 @@ function NameStele() {
   );
 }
 
-// The east trees sit behind the sculpture line so the garden reads layered:
-// axis, banners, sculptures, trees.
+// Trees frame the open walking axis on both flanks — the plaza is otherwise
+// left empty so the void reads monumental.
 const TREES: { position: [number, number, number]; scale: number }[] = [
   { position: [10.5, 0, 17.5], scale: 1.15 },
   { position: [9.8, 0, 23.5], scale: 1.3 },

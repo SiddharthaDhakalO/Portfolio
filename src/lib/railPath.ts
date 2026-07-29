@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { getProjectsByWing } from './projects';
 import { GALLERY_EXHIBIT_SLOTS, ATRIUM_FEATURE_SLOTS } from './exhibitSlots';
-import { GARDEN_X, sculptureZ } from './floorplan';
+import { sculptureZ } from './floorplan';
 import type { RoomId } from './useMuseumStore';
 
 export const EYE_Y = 1.6;
@@ -9,22 +9,22 @@ export const EYE_Y = 1.6;
 const GALLERY_PROJECTS = getProjectsByWing('gallery');
 
 // Ordered walk: begin high at the arrival point on the far end of the plaza,
-// then walk the straight processional axis — the ground wordmark resolving
-// underfoot, banners passing, the pool to the right, the sculpture garden to
-// the left — so the building grows in frame while staying still. Through the
-// sliding doors, then one continuous drift through the free-plan hall: past
-// the entry blade to the gift shop, down the open centre, through the gallery
-// slot between the two blades, across the open south, up into the studio
-// zone, and back to rest in the middle of the hall. Edit the stops to
+// then walk the straight, empty processional axis — the stele and the
+// directory banner flanking it, the reflecting pool to the left — so the
+// building grows in frame while the camera holds a clean forward line.
+// Through the sliding doors, then one continuous drift through the free-plan
+// hall: past the entry blade to the gift shop, down the open centre, through
+// the gallery slot between the two blades, across the open south, up into the
+// studio zone, and back to rest in the middle of the hall. Edit the stops to
 // reroute the tour.
 const STOPS: { x: number; z: number; y?: number }[] = [
-  { x: 0, z: 50, y: 4.2 }, // 0  arrival — high, the axis and wordmark below
+  { x: 0, z: 50, y: 4.2 }, // 0  arrival — high, looking down the axis
   { x: 0, z: 45.5, y: 2.6 }, // 1  descending onto the axis
-  { x: 0, z: 41 }, // 2  eye level — stele right, banner line ahead-left
-  { x: 0, z: 35.5 }, // 3  banners passing on the left
-  { x: 0, z: 29.5 }, // 4  sculpture garden on the right, pool on the left
-  { x: 0, z: 23.5 }, // 5  the last pedestals
-  { x: 0, z: 18.6 }, // 6  the empty forecourt before the doors
+  { x: 0, z: 41 }, // 2  eye level — stele right, directory banner left
+  { x: 0, z: 35.5 }, // 3  the open axis, building growing ahead
+  { x: 0, z: 29.5 }, // 4  reflecting pool passing on the left
+  { x: 0, z: 23.5 }, // 5  the empty forecourt opens up
+  { x: 0, z: 18.6 }, // 6  the last of the forecourt before the doors
   { x: 0, z: 16.8 }, // 7  under the canopy — doors sliding open
   { x: 0, z: 14.4 }, // 8  threshold at the glass line
   { x: 0, z: 12.4 }, // 9  inside — the entry blade deflects the view left
@@ -130,16 +130,14 @@ const FEATURE_VIEWPOINTS: Record<string, [number, number]> = {
 export const POIS: Poi[] = [
   // Arrival: hold the facade so the building grows in frame on the descent
   { target: new THREE.Vector3(0, 3.4, 14), t: tNearest(0, 47), radius: 8 },
-  // The procession — stele right, pool right, sculptures left, then the doors
-  { target: new THREE.Vector3(2.7, 1.6, 38.8), t: tNearest(0, 39.5), radius: 3 },
-  // Glance at the pool before the garden line takes over — their t ranges
-  // must not overlap or the two gazes average out to nothing.
-  { target: new THREE.Vector3(-5.7, 0.2, 26), t: tNearest(0, 33), radius: 2.5 },
-  ...getProjectsByWing('archive').map((p, i) => ({
-    target: new THREE.Vector3(GARDEN_X, 1.3, sculptureZ(i)),
-    t: SCULPTURE_T[p.slug],
-    radius: 3,
-  })),
+  // One glance right at the nameplate stele as it passes — nothing on the
+  // axis pulls the gaze otherwise, so the walk-in reads as a clean forward line.
+  { target: new THREE.Vector3(3.05, 1.6, 38.8), t: tNearest(0, 39.5), radius: 2.6 },
+  // A quiet glance at the reflecting pool on the left.
+  { target: new THREE.Vector3(-5.7, 0.2, 26), t: tNearest(0, 30), radius: 2.5 },
+  // The display car on the east flank at the plaza head — one glance as it
+  // passes, in the t-gap between the pool and the stele so gazes don't average.
+  { target: new THREE.Vector3(7, 0.9, 34), t: tNearest(0, 34.5), radius: 1.4 },
   // Kept low and early so the gaze meets the doors, not the canopy soffit.
   { target: new THREE.Vector3(0, 3, 15.5), t: tNearest(0, 22), radius: 3 },
   { target: new THREE.Vector3(0, 2.1, 14.1), t: tNearest(0, 15.8), radius: 3 },

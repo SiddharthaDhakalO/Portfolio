@@ -11,8 +11,8 @@ import Exhibit from './Exhibit';
 import Plinth from './Plinth';
 import Props from './Props';
 import SketchWall from './SketchWall';
-import SculptureGarden from './SculptureGarden';
-import PlazaApproach from './PlazaApproach';
+import DirectoryBanner from './DirectoryBanner';
+import DisplayCar from './DisplayCar';
 import { PROJECTS, getProjectsByWing } from '@/lib/projects';
 import {
   GALLERY_EXHIBIT_SLOTS,
@@ -94,8 +94,8 @@ export default function Scene({ fov = 60 }: SceneProps) {
 
         <Props />
         <SketchWall />
-        <SculptureGarden />
-        <PlazaApproach />
+        <DirectoryBanner />
+        <DisplayCar />
 
         {placedProjects.map((project, i) => {
           const slot = GALLERY_EXHIBIT_SLOTS[i];

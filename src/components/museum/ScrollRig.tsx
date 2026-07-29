@@ -8,11 +8,11 @@ import { railBus } from '@/lib/cameraBus';
 import { ZONES, FLOOR_W, FLOOR_D, GLASS_Z } from '@/lib/floorplan';
 import { useMuseumStore, type RoomId } from '@/lib/useMuseumStore';
 
-const SCROLL_SPEED = 0.9 / RAIL_LENGTH; // metres of walk per wheel "line"
-const TOUCH_SPEED = 0.045 / RAIL_LENGTH; // metres per pixel of drag
-const KEY_SPEED = 6 / RAIL_LENGTH; // metres per second held
-const DAMP = 2.2;
-const MAX_SPEED = 10 / RAIL_LENGTH; // cap walk speed (m/s in t units)
+const SCROLL_SPEED = 0.5 / RAIL_LENGTH; // metres of walk per wheel "line"
+const TOUCH_SPEED = 0.028 / RAIL_LENGTH; // metres per pixel of drag
+const KEY_SPEED = 3.5 / RAIL_LENGTH; // metres per second held
+const DAMP = 1.8;
+const MAX_SPEED = 5.5 / RAIL_LENGTH; // cap walk speed (m/s in t units)
 const LOOK_AHEAD = 2.6 / RAIL_LENGTH;
 const ARRIVE_EPS = 1.5 / RAIL_LENGTH;
 
